@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Class Sections — SmartAttend{% endblock %}
+{% block breadcrumb %}
+    <a href="{{ url_for('admin.dashboard') }}">Dashboard</a> / <span>Class Sections</span>
+{% endblock %}
+
+{% block content %}
+<div style="display: flex; gap: 24px; flex-wrap: wrap;">
+    <div class="card" style="flex: 2; min-width: 300px; overflow-x: auto;">
+        <h3>📖 Class Sections</h3>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>Faculty</th>
+                    <th>Section</th>
+                    <th>Sem</th>
+                    <th>Year</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cs in sections %}
+                <tr>
+                    <td>{{ cs.subject.code }} - {{ cs.subject.name }}</td>
+                    <td>{{ cs.faculty.user.full_name }}</td>
+                    <td><strong>{{ cs.section }}</strong></td>
+                    <td>{{ cs.semester }}</td>
+                    <td>{{ cs.academic_year }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5">No class sections found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card" style="flex: 1; min-width: 250px;">
+        <h3>Create Section</h3>
+        <form method="POST" action="{{ url_for('admin.class_sections') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group">
+                <label>Subject</label>
+                <select name="subject_id" required>
+                    {% for s in subjects %}
+                    <option value="{{ s.id }}">{{ s.code }} - {{ s.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Faculty</label>
+                <select name="faculty_id" required>
+                    {% for f in faculty %}
+                    <option value="{{ f.id }}">{{ f.user.full_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group"><label>Section (e.g. A)</label><input type="text" name="section" required></div>
+            <div class="form-group"><label>Semester</label><input type="number" name="semester" required min="1" max="8"></div>
+            <div class="form-group"><label>Academic Year (e.g. 2026-2027)</label><input type="text" name="academic_year" required></div>
+            <button type="submit" class="btn btn-primary btn-block">Create</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

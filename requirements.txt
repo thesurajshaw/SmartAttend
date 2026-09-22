@@ -1,0 +1,11 @@
+Flask==3.0.3
+Flask-SQLAlchemy==3.1.1
+Flask-Migrate==4.0.7
+Flask-Login==0.6.3
+Flask-WTF==1.2.1
+python-dotenv==1.0.1
+Werkzeug==3.0.1
+APScheduler==3.10.4
+pandas
+openpyxl==3.1.2
+pytest==8.1.1

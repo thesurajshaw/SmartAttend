@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Attendance History — SmartAttend{% endblock %}
+{% block breadcrumb %}
+    <a href="{{ url_for('student.dashboard') }}">Dashboard</a> / <span>History</span>
+{% endblock %}
+
+{% block content %}
+{% for subj in subjects %}
+<div class="card" style="margin-bottom: 24px;">
+    <h3>{{ subj.subject_code }} — {{ subj.subject_name }}</h3>
+    <div style="overflow-x: auto;">
+        <table class="data-table" style="margin-top: 8px;">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Topic</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in subj.records %}
+                <tr>
+                    <td>{{ r.date.strftime('%d %b %Y') }}</td>
+                    <td>{{ r.start_time.strftime('%H:%M') }} - {{ r.end_time.strftime('%H:%M') }}</td>
+                    <td>{{ r.topic or '-' }}</td>
+                    <td>
+                        {% if r.status == 'present' %}
+                            <span class="status-chip status-safe">Present</span>
+                        {% elif r.status == 'absent' %}
+                            <span class="status-chip status-critical">Absent</span>
+                        {% elif r.status == 'late' %}
+                            <span class="status-chip status-warning">Late</span>
+                        {% else %}
+                            <span class="status-chip" style="background: rgba(100,116,139,0.15); color: var(--text-secondary);">Excused</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4">No attendance records yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="card"><p>You are not enrolled in any subjects.</p></div>
+{% endfor %}
+{% endblock %}

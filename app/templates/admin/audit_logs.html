@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Audit Logs — SmartAttend{% endblock %}
+{% block breadcrumb %}
+    <a href="{{ url_for('admin.dashboard') }}">Dashboard</a> / <span>Audit Logs</span>
+{% endblock %}
+
+{% block content %}
+<h2 style="margin-bottom: 24px;">🛡️ Audit Logs</h2>
+
+<div class="card">
+    <div style="overflow-x: auto;">
+        <table class="data-table" style="font-size: 0.9rem;">
+            <thead>
+                <tr>
+                    <th>Timestamp (UTC)</th>
+                    <th>Actor</th>
+                    <th>Action</th>
+                    <th>Entity</th>
+                    <th>Entity ID</th>
+                    <th>Changes</th>
+                    <th>IP Address</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in pagination.items %}
+                <tr>
+                    <td style="white-space: nowrap;">{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    <td>
+                        {% if log.actor_user_id %}
+                            {{ actors.get(log.actor_user_id, 'Unknown ID ' ~ log.actor_user_id) }}
+                        {% else %}
+                            <span style="color: var(--text-secondary);">System</span>
+                        {% endif %}
+                    </td>
+                    <td><strong>{{ log.action }}</strong></td>
+                    <td>{{ log.entity_type }}</td>
+                    <td>{{ log.entity_id }}</td>
+                    <td>
+                        {% if log.old_value %}
+                        <div style="color: var(--red); font-size: 0.8rem; text-decoration: line-through;">
+                            {{ log.old_value | tojson }}
+                        </div>
+                        {% endif %}
+                        {% if log.new_value %}
+                        <div style="color: var(--green); font-size: 0.8rem;">
+                            {{ log.new_value | tojson }}
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td>{{ log.ip_address or '-' }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7">No audit logs found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if pagination.pages > 1 %}
+    <div style="display: flex; justify-content: center; gap: 8px; margin-top: 16px;">
+        {% if pagination.has_prev %}
+        <a href="{{ url_for('admin.audit_logs', page=pagination.prev_num) }}" class="btn btn-sm" style="background: var(--bg-secondary);">&laquo; Previous</a>
+        {% endif %}
+        
+        <span style="padding: 4px 12px; background: var(--bg-secondary); border-radius: 4px;">Page {{ pagination.page }} of {{ pagination.pages }}</span>
+        
+        {% if pagination.has_next %}
+        <a href="{{ url_for('admin.audit_logs', page=pagination.next_num) }}" class="btn btn-sm" style="background: var(--bg-secondary);">Next &raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

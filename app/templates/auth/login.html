@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — SmartAttend</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="login-page">
+        <div class="login-card">
+            <h1>📋 SmartAttend</h1>
+            <p>Sign in to your account</p>
+
+            <form method="POST" action="{{ url_for('auth.login') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required autofocus
+                           placeholder="you@smart.edu">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required
+                           placeholder="Your password">
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    {% for category, message in messages %}
+                        showToast("{{ message }}", "{{ category }}");
+                    {% endfor %}
+                });
+            </script>
+        {% endif %}
+    {% endwith %}
+</body>
+</html>

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Correction Requests — SmartAttend{% endblock %}
+{% block breadcrumb %}
+    <a href="{{ url_for('admin.dashboard') }}">Dashboard</a> / <span>Corrections</span>
+{% endblock %}
+
+{% block content %}
+<h2 style="margin-bottom: 24px;">📝 Correction Requests</h2>
+
+<div class="card">
+    {% if requests %}
+    <div style="overflow-x: auto;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Requester (Faculty)</th>
+                    <th>Student</th>
+                    <th>Subject/Section</th>
+                    <th>Change</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in requests %}
+                <tr {% if req.status == 'pending' %}style="background-color: var(--bg-secondary);"{% endif %}>
+                    <td>{{ req.record.session.session_date.strftime('%d %b %Y') }}</td>
+                    <td>{{ req.requester.full_name }}</td>
+                    <td>
+                        {{ req.record.student.roll_no }}<br>
+                        <small style="color: var(--text-secondary);">{{ req.record.student.user.full_name }}</small>
+                    </td>
+                    <td>{{ req.record.session.class_section.subject.code }} — {{ req.record.session.class_section.section }}</td>
+                    <td>
+                        <span class="status-chip status-{{ req.old_status|lower }}">{{ req.old_status|title }}</span>
+                        →
+                        <span class="status-chip status-{{ req.new_status|lower }}">{{ req.new_status|title }}</span>
+                    </td>
+                    <td style="max-width: 200px; white-space: normal;">{{ req.reason }}</td>
+                    <td>
+                        <span class="status-chip status-{{ 'safe' if req.status == 'approved' else ('critical' if req.status == 'rejected' else 'warning') }}">
+                            {{ req.status|title }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if req.status == 'pending' %}
+                        <form method="POST" style="display: flex; gap: 4px; flex-direction: column;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="text" name="review_note" placeholder="Review note (optional)" style="font-size: 0.8rem; padding: 4px; border: 1px solid var(--border-color); border-radius: 4px;">
+                            <div style="display: flex; gap: 4px;">
+                                <button type="submit" formaction="{{ url_for('admin.process_correction', id=req.id, action='approve') }}" class="btn btn-primary btn-sm" style="background-color: var(--green); border: none;">Approve</button>
+                                <button type="submit" formaction="{{ url_for('admin.process_correction', id=req.id, action='reject') }}" class="btn btn-primary btn-sm" style="background-color: var(--red); border: none;">Reject</button>
+                            </div>
+                        </form>
+                        {% else %}
+                            {% if req.review_note %}
+                            <small>Note: {{ req.review_note }}</small><br>
+                            {% endif %}
+                            <small style="color: var(--text-secondary);">By {{ req.reviewer.full_name if req.reviewer else 'Unknown' }}<br>on {{ req.reviewed_at.strftime('%d %b %Y') if req.reviewed_at else '' }}</small>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p>No correction requests found.</p>
+    {% endif %}
+</div>
+{% endblock %}

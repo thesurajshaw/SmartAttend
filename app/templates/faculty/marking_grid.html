@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% block title %}Mark Attendance — SmartAttend{% endblock %}
+{% block breadcrumb %}
+    <a href="{{ url_for('faculty.dashboard') }}">Dashboard</a> / 
+    <a href="{{ url_for('faculty.section_sessions', section_id=session.class_section_id) }}">{{ session.class_section.subject.code }}</a> / 
+    <span>Marking Grid</span>
+{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
+    <div>
+        <h2 style="margin: 0; font-size: 1.25rem;">
+            {{ session.session_date.strftime('%A, %d %B %Y') }} 
+            ({{ session.start_time.strftime('%H:%M') }} - {{ session.end_time.strftime('%H:%M') }})
+        </h2>
+        <div style="color: var(--text-secondary); margin-top: 4px;">Topic: {{ session.topic or 'N/A' }}</div>
+    </div>
+    <div>
+        {% if is_locked %}
+            <span class="status-chip status-critical" style="font-size: 0.9rem; padding: 6px 16px;">Locked</span>
+        {% else %}
+            <span class="status-chip status-safe" style="font-size: 0.9rem; padding: 6px 16px;">Open</span>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <form method="POST" action="{{ url_for('faculty.marking_grid', session_id=session.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        
+        <div style="overflow-x: auto;">
+            <table class="data-table" style="min-width: 600px;">
+                <thead>
+                    <tr>
+                        <th>Roll No</th>
+                        <th>Student Name</th>
+                        <th style="width: 250px;">Status</th>
+                        <th>Remarks</th>
+                        {% if is_locked %}<th>Correction</th>{% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for enrollment in enrollments %}
+                        {% set s = enrollment.student %}
+                        {% set record = records.get(s.id) %}
+                        {% set status = record.status if record else 'present' %}
+                        <tr>
+                            <td><strong>{{ s.roll_no }}</strong></td>
+                            <td>{{ s.user.full_name }}</td>
+                            <td>
+                                <div style="display: flex; gap: 8px;">
+                                    <label style="cursor: {% if is_locked %}not-allowed{% else %}pointer{% endif %};">
+                                        <input type="radio" name="status_{{ s.id }}" value="present" {% if status == 'present' %}checked{% endif %} {% if is_locked %}disabled{% endif %}> P
+                                    </label>
+                                    <label style="cursor: {% if is_locked %}not-allowed{% else %}pointer{% endif %}; color: var(--red);">
+                                        <input type="radio" name="status_{{ s.id }}" value="absent" {% if status == 'absent' %}checked{% endif %} {% if is_locked %}disabled{% endif %}> A
+                                    </label>
+                                    <label style="cursor: {% if is_locked %}not-allowed{% else %}pointer{% endif %}; color: var(--amber);">
+                                        <input type="radio" name="status_{{ s.id }}" value="late" {% if status == 'late' %}checked{% endif %} {% if is_locked %}disabled{% endif %}> L
+                                    </label>
+                                    <label style="cursor: {% if is_locked %}not-allowed{% else %}pointer{% endif %}; color: var(--text-secondary);">
+                                        <input type="radio" name="status_{{ s.id }}" value="excused" {% if status == 'excused' %}checked{% endif %} {% if is_locked %}disabled{% endif %}> E
+                                    </label>
+                                </div>
+                            </td>
+                            <td>
+                                <input type="text" name="remarks_{{ s.id }}" value="{{ record.remarks or '' }}" 
+                                       placeholder="Optional note" 
+                                       style="width: 100%; padding: 4px; border: 1px solid var(--border-color); border-radius: 4px;"
+                                       {% if is_locked %}disabled{% endif %}>
+                            </td>
+                            {% if is_locked %}
+                                <td>
+                                    {% if record %}
+                                        {% set active_request = record.correction_requests|selectattr('status', 'equalto', 'pending')|list %}
+                                        {% if active_request %}
+                                            <span class="status-chip status-warning">Pending</span>
+                                        {% else %}
+                                            <button type="button" class="btn btn-sm" style="background: var(--bg-primary); border: 1px solid var(--border-color);" 
+                                                    onclick="openCorrectionModal({{ record.id }}, '{{ s.user.full_name }}', '{{ status }}')">
+                                                Request Edit
+                                            </button>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="status-chip">No Record</span>
+                                    {% endif %}
+                                </td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        {% if not is_locked %}
+        <div style="margin-top: 24px; display: flex; gap: 16px; justify-content: flex-end;">
+            <button type="submit" name="action" value="save" class="btn btn-primary" style="background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color);">
+                Save Draft
+            </button>
+            <button type="submit" name="action" value="save_and_lock" class="btn btn-primary">
+                Save & Lock Session
+            </button>
+        </div>
+        {% endif %}
+    </form>
+</div>
+
+{% if is_locked %}
+<!-- Correction Modal -->
+<div id="correctionModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div class="card" style="width: 100%; max-width: 400px; position: relative;">
+        <button onclick="closeCorrectionModal()" style="position: absolute; right: 16px; top: 16px; background: none; border: none; font-size: 1.2rem; cursor: pointer;">&times;</button>
+        <h3>Request Correction</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.9rem;" id="correctionStudentName"></p>
+        
+        <form id="correctionForm" method="POST" action="">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group">
+                <label>Change status to:</label>
+                <select name="new_status" required>
+                    <option value="present">Present</option>
+                    <option value="absent">Absent</option>
+                    <option value="late">Late</option>
+                    <option value="excused">Excused</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Reason for correction</label>
+                <textarea name="reason" required rows="3" placeholder="Explain why this needs to be changed after the session was locked..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Submit Request</button>
+        </form>
+    </div>
+</div>
+
+<script>
+function openCorrectionModal(recordId, studentName, currentStatus) {
+    const modal = document.getElementById('correctionModal');
+    document.getElementById('correctionStudentName').innerText = 'For: ' + studentName + ' (Currently: ' + currentStatus + ')';
+    document.getElementById('correctionForm').action = "{{ url_for('faculty.request_correction', record_id=0) }}".replace('0', recordId);
+    modal.style.display = 'flex';
+}
+function closeCorrectionModal() {
+    document.getElementById('correctionModal').style.display = 'none';
+}
+</script>
+{% endif %}
+
+{% endblock %}

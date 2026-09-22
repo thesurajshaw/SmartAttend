@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Subjects — SmartAttend{% endblock %}
+{% block breadcrumb %}
+    <a href="{{ url_for('admin.dashboard') }}">Dashboard</a> / <span>Subjects</span>
+{% endblock %}
+
+{% block content %}
+<div style="display: flex; gap: 24px; flex-wrap: wrap;">
+    <div class="card" style="flex: 2; min-width: 300px; overflow-x: auto;">
+        <h3>📚 Subjects</h3>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Dept</th>
+                    <th>Sem</th>
+                    <th>Credits</th>
+                    <th>Type</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in subjects %}
+                <tr>
+                    <td><strong>{{ s.code }}</strong></td>
+                    <td>{{ s.name }}</td>
+                    <td>{{ s.department.code }}</td>
+                    <td>{{ s.semester }}</td>
+                    <td>{{ s.credits }}</td>
+                    <td>{{ s.subject_type }}</td>
+                    <td>
+                        <form action="{{ url_for('admin.delete_subject', id=s.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-danger">Del</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7">No subjects found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card" style="flex: 1; min-width: 250px;">
+        <h3>Add Subject</h3>
+        <form method="POST" action="{{ url_for('admin.subjects') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group">
+                <label>Department</label>
+                <select name="department_id" required>
+                    {% for d in departments %}
+                    <option value="{{ d.id }}">{{ d.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group"><label>Code</label><input type="text" name="code" required></div>
+            <div class="form-group"><label>Name</label><input type="text" name="name" required></div>
+            <div class="form-group"><label>Semester</label><input type="number" name="semester" required min="1" max="8"></div>
+            <div class="form-group"><label>Credits</label><input type="number" name="credits" required min="1" max="6"></div>
+            <div class="form-group">
+                <label>Type</label>
+                <select name="subject_type" required>
+                    <option value="theory">Theory</option>
+                    <option value="lab">Lab</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Add</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

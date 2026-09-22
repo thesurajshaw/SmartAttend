@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SmartAttend{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <nav class="sidebar" id="sidebar" aria-label="Main navigation">
+            <div class="sidebar-header">
+                <h2>📋 SmartAttend</h2>
+                <small>{{ current_user.role | capitalize }} Panel</small>
+            </div>
+            <div class="sidebar-nav">
+                {% if current_user.role == 'admin' %}
+                    <a href="{{ url_for('admin.dashboard') }}" class="{% if request.endpoint == 'admin.dashboard' %}active{% endif %}">📊 Dashboard</a>
+                    <a href="{{ url_for('admin.analytics') }}" class="{% if request.endpoint == 'admin.analytics' %}active{% endif %}">📈 Analytics</a>
+                    <a href="{{ url_for('admin.corrections') }}" class="{% if request.endpoint == 'admin.corrections' %}active{% endif %}">📝 Corrections</a>
+                    <a href="{{ url_for('admin.audit_logs') }}" class="{% if request.endpoint == 'admin.audit_logs' %}active{% endif %}">🛡️ Audit Logs</a>
+                    <a href="{{ url_for('admin.departments') }}" class="{% if 'department' in request.endpoint %}active{% endif %}">🏛️ Departments</a>
+                    <a href="{{ url_for('admin.subjects') }}" class="{% if 'subject' in request.endpoint %}active{% endif %}">📚 Subjects</a>
+                    <a href="{{ url_for('admin.faculty_list') }}" class="{% if 'faculty' in request.endpoint %}active{% endif %}">👨‍🏫 Faculty</a>
+                    <a href="{{ url_for('admin.students') }}" class="{% if 'student' in request.endpoint %}active{% endif %}">🎓 Students</a>
+                    <a href="{{ url_for('admin.class_sections') }}" class="{% if 'class_section' in request.endpoint %}active{% endif %}">📖 Class Sections</a>
+                    <a href="{{ url_for('admin.settings') }}" class="{% if 'settings' in request.endpoint %}active{% endif %}">⚙️ Settings</a>
+                {% elif current_user.role == 'faculty' %}
+                    <a href="{{ url_for('faculty.dashboard') }}" class="{% if request.endpoint == 'faculty.dashboard' %}active{% endif %}">📊 Dashboard</a>
+                    <a href="{{ url_for('faculty.my_sections') }}" class="{% if 'section' in request.endpoint %}active{% endif %}">📖 My Sections</a>
+                {% elif current_user.role == 'student' %}
+                    <a href="{{ url_for('student.dashboard') }}" class="{% if request.endpoint == 'student.dashboard' %}active{% endif %}">📊 Dashboard</a>
+                    <a href="{{ url_for('student.notifications') }}" class="{% if request.endpoint == 'student.notifications' %}active{% endif %}">🔔 Notifications</a>
+                    <a href="{{ url_for('student.history') }}" class="{% if 'history' in request.endpoint %}active{% endif %}">📅 History</a>
+                    <a href="{{ url_for('student.export_csv') }}">📥 Export Report</a>
+                {% endif %}
+            </div>
+            <div class="sidebar-footer">
+                <div style="margin-bottom: 8px;">👤 {{ current_user.full_name }}</div>
+                <a href="{{ url_for('auth.change_password') }}">🔑 Change Password</a><br>
+                <a href="{{ url_for('auth.logout') }}">🚪 Logout</a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="menu-toggle" onclick="toggleSidebar()" aria-label="Toggle menu">☰</button>
+                    <div class="breadcrumb">
+                        {% block breadcrumb %}<span>Dashboard</span>{% endblock %}
+                    </div>
+                </div>
+                <div class="topbar-right">
+                    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">🌙</button>
+                </div>
+            </header>
+
+            <main class="content-area">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    <!-- Render server-side flash messages as toasts -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    {% for category, message in messages %}
+                        showToast("{{ message }}", "{{ category }}");
+                    {% endfor %}
+                });
+            </script>
+        {% endif %}
+    {% endwith %}
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

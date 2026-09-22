@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% block title %}{{ cs.subject.code }} — SmartAttend{% endblock %}
+{% block breadcrumb %}
+    <a href="{{ url_for('student.dashboard') }}">Dashboard</a> / <span>{{ cs.subject.code }}</span>
+{% endblock %}
+
+{% block content %}
+<!-- Header Card -->
+<div class="card" style="margin-bottom: 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <h2 style="margin: 0;">{{ cs.subject.code }} — {{ cs.subject.name }}</h2>
+            <p style="color: var(--text-secondary); margin-top: 4px;">
+                Faculty: {{ cs.faculty.user.full_name }} • Section {{ cs.section }} • {{ cs.academic_year }}
+            </p>
+        </div>
+        <span class="status-chip status-{{ status|lower }}" style="font-size: 1rem; padding: 8px 20px;">{{ status }}</span>
+    </div>
+</div>
+
+<div style="display: flex; gap: 24px; flex-wrap: wrap;">
+    <!-- Left Column -->
+    <div style="flex: 2; min-width: 300px; display: flex; flex-direction: column; gap: 24px;">
+
+        <!-- Metrics Row -->
+        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+            <div class="card" style="flex: 1; min-width: 120px; text-align: center;">
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">Attended</div>
+                <div style="font-size: 2rem; font-weight: bold; color: var(--accent);">{{ A }}</div>
+            </div>
+            <div class="card" style="flex: 1; min-width: 120px; text-align: center;">
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">Conducted</div>
+                <div style="font-size: 2rem; font-weight: bold; color: var(--accent);">{{ C }}</div>
+            </div>
+            <div class="card" style="flex: 1; min-width: 120px; text-align: center;">
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">Percentage</div>
+                <div style="font-size: 2rem; font-weight: bold;">{{ "%.1f"|format(percentage) }}%</div>
+            </div>
+            <div class="card" style="flex: 1; min-width: 120px; text-align: center;">
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">Need to Attend</div>
+                <div style="font-size: 2rem; font-weight: bold; color: {% if needed and needed != 0 %}var(--red){% else %}var(--green){% endif %};">
+                    {{ needed if needed != 'impossible' else '∞' }}
+                </div>
+            </div>
+            <div class="card" style="flex: 1; min-width: 120px; text-align: center;">
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">Can Miss</div>
+                <div style="font-size: 2rem; font-weight: bold; color: {% if can_miss > 0 %}var(--green){% else %}var(--amber){% endif %};">{{ can_miss }}</div>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="card">
+            <h3>Attendance Progress</h3>
+            <div style="margin-top: 8px;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px;">
+                    <span>{{ A }}/{{ C }} classes attended</span>
+                    <span>Required: {{ required_pct|int }}%</span>
+                </div>
+                <div class="progress-bar-track" style="height: 16px; position: relative;">
+                    {% if percentage >= (required_pct + 5) %}
+                        {% set bar_color = 'var(--green)' %}
+                    {% elif percentage >= required_pct %}
+                        {% set bar_color = 'var(--amber)' %}
+                    {% else %}
+                        {% set bar_color = 'var(--red)' %}
+                    {% endif %}
+                    <div class="progress-bar-fill" style="width: {{ [percentage, 100]|min }}%; background: {{ bar_color }}; height: 100%;"></div>
+                    <!-- Required threshold marker -->
+                    <div style="position: absolute; left: {{ required_pct }}%; top: -4px; bottom: -4px; width: 2px; background: var(--text-primary); opacity: 0.5;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Guidance -->
+        <div class="card" style="border-left: 4px solid {% if status == 'Critical' %}var(--red){% elif status == 'Warning' %}var(--amber){% else %}var(--green){% endif %};">
+            <h3>📋 Guidance</h3>
+            <p style="font-size: 0.95rem; margin-top: 8px;">{{ guidance }}</p>
+            {% if declining %}
+                <p style="color: var(--red); margin-top: 8px; font-weight: 500;">📉 Warning: Your attendance has been declining over the last 4 weeks.</p>
+            {% endif %}
+        </div>
+
+        <!-- Weekly Trend (text-based) -->
+        {% if weekly_pcts|length > 1 %}
+        <div class="card">
+            <h3>📊 Weekly Trend</h3>
+            <table class="data-table" style="margin-top: 8px;">
+                <thead>
+                    <tr>
+                        {% for i in range(weekly_pcts|length) %}
+                        <th>W{{ i + 1 }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        {% for pct in weekly_pcts %}
+                        <td style="text-align: center; font-weight: 500; color: {% if pct >= 0.75 %}var(--green){% elif pct >= 0.70 %}var(--amber){% else %}var(--red){% endif %};">
+                            {{ "%.0f"|format(pct * 100) }}%
+                        </td>
+                        {% endfor %}
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <!-- Attendance History -->
+        <div class="card">
+            <h3>📅 Session History</h3>
+            <div style="overflow-x: auto;">
+                <table class="data-table" style="margin-top: 8px;">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Topic</th>
+                            <th>Status</th>
+                            <th>Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for h in history %}
+                        <tr>
+                            <td>{{ h.date.strftime('%d %b %Y') }}</td>
+                            <td>{{ h.start_time.strftime('%H:%M') }} - {{ h.end_time.strftime('%H:%M') }}</td>
+                            <td>{{ h.topic or '-' }}</td>
+                            <td>
+                                {% if h.status == 'present' %}
+                                    <span class="status-chip status-safe">Present</span>
+                                {% elif h.status == 'absent' %}
+                                    <span class="status-chip status-critical">Absent</span>
+                                {% elif h.status == 'late' %}
+                                    <span class="status-chip status-warning">Late</span>
+                                {% else %}
+                                    <span class="status-chip" style="background: rgba(100,116,139,0.15); color: var(--text-secondary);">Excused</span>
+                                {% endif %}
+                            </td>
+                            <td style="font-size: 0.8rem; color: var(--text-secondary);">{{ h.remarks or '' }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5">No attendance records yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: What-If Calculator -->
+    <div style="flex: 1; min-width: 280px;">
+        <div class="card" style="position: sticky; top: 80px;">
+            <h3>🔮 What-If Calculator</h3>
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 16px;">
+                See how attending or missing future classes would affect your percentage.
+            </p>
+
+            <form method="GET" action="{{ url_for('student.subject_detail', section_id=cs.id) }}">
+                <div class="form-group">
+                    <label>Number of classes</label>
+                    <input type="number" name="n" min="1" max="100" required
+                           value="{{ what_if_result.n if what_if_result else '' }}"
+                           placeholder="e.g. 5">
+                </div>
+                <div class="form-group">
+                    <label>Action</label>
+                    <div style="display: flex; gap: 12px;">
+                        <label style="cursor: pointer;">
+                            <input type="radio" name="action" value="attend" 
+                                   {% if not what_if_result or what_if_result.action == 'attend' %}checked{% endif %}> 
+                            Attend
+                        </label>
+                        <label style="cursor: pointer;">
+                            <input type="radio" name="action" value="miss"
+                                   {% if what_if_result and what_if_result.action == 'miss' %}checked{% endif %}> 
+                            Miss
+                        </label>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Calculate</button>
+            </form>
+
+            {% if what_if_result %}
+            <div style="margin-top: 20px; padding: 16px; border-radius: var(--radius); border: 1px solid var(--border-color); background: var(--bg-primary);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <strong style="font-size: 1.5rem;">{{ "%.1f"|format(what_if_result.projected) }}%</strong>
+                    <span class="status-chip status-{{ what_if_result.status|lower }}">{{ what_if_result.status }}</span>
+                </div>
+                <p style="font-size: 0.85rem; color: var(--text-secondary);">{{ what_if_result.verdict }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
