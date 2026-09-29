@@ -1,0 +1,40 @@
+{#
+  Small pieces of markup that show up on many pages, written once here.
+
+  A page uses them like this:
+
+      {% from "_ui.html" import status_chip, delete_button with context %}
+
+  The "with context" matters: delete_button calls csrf_token(), and an
+  imported macro cannot see Flask's helpers without it. Leave it out and
+  every page using the macro fails to render.
+#}
+
+
+{% macro status_chip(status, size='') %}
+    {#-
+      Turns a status word into a coloured pill. The colour is not decided
+      here -- style.css maps every status word to green, amber, red or
+      grey, so this macro just passes the word straight through.
+    -#}
+    <span class="status-chip status-{{ status|lower }}{% if size %} status-chip-{{ size }}{% endif %}">{{ status|title }}</span>
+{%- endmacro %}
+
+
+{% macro delete_button(action_url, label='Delete') %}
+    {#- A delete needs its own form, because it must be a POST carrying the CSRF token. -#}
+    <form action="{{ action_url }}" method="POST" class="form-inline"
+          onsubmit="return confirm('Are you sure?');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-sm btn-danger">{{ label }}</button>
+    </form>
+{%- endmacro %}
+
+
+{% macro stat(label, value, classes='') %}
+    {#- One big-number tile: a small grey caption above a large figure. -#}
+    <div class="card stat-card {{ classes }}">
+        <div class="stat-label">{{ label }}</div>
+        <div class="stat-value">{{ value }}</div>
+    </div>
+{%- endmacro %}

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_ui.html" import delete_button with context %}
 {% block title %}Departments — SmartAttend{% endblock %}
 {% block breadcrumb %}
     <a href="{{ url_for('admin.dashboard') }}">Dashboard</a> / <span>Departments</span>
@@ -23,10 +24,7 @@
                     <td><strong>{{ d.code }}</strong></td>
                     <td>{{ d.name }}</td>
                     <td>
-                        <form action="{{ url_for('admin.delete_department', id=d.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure?');">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                        </form>
+                        {{ delete_button(url_for('admin.delete_department', id=d.id)) }}
                     </td>
                 </tr>
                 {% else %}

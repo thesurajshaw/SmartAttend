@@ -1,0 +1,16 @@
+{#
+  Server-side flash messages (flash("Saved.", "success")) handed to the
+  same showToast() that main.js uses, so a message raised in Python and
+  one raised in JavaScript look identical on screen.
+#}
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                {% for category, message in messages %}
+                    showToast("{{ message }}", "{{ category }}");
+                {% endfor %}
+            });
+        </script>
+    {% endif %}
+{% endwith %}

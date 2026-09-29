@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_ui.html" import status_chip %}
 {% block title %}{{ cs.subject.code }} — SmartAttend{% endblock %}
 {% block breadcrumb %}
     <a href="{{ url_for('student.dashboard') }}">Dashboard</a> / <span>{{ cs.subject.code }}</span>
@@ -119,17 +120,7 @@
                             <td>{{ h.date.strftime('%d %b %Y') }}</td>
                             <td>{{ h.start_time.strftime('%H:%M') }} - {{ h.end_time.strftime('%H:%M') }}</td>
                             <td>{{ h.topic or '-' }}</td>
-                            <td>
-                                {% if h.status == 'present' %}
-                                    <span class="status-chip status-safe">Present</span>
-                                {% elif h.status == 'absent' %}
-                                    <span class="status-chip status-critical">Absent</span>
-                                {% elif h.status == 'late' %}
-                                    <span class="status-chip status-warning">Late</span>
-                                {% else %}
-                                    <span class="status-chip" style="background: rgba(100,116,139,0.15); color: var(--text-secondary);">Excused</span>
-                                {% endif %}
-                            </td>
+                            <td>{{ status_chip(h.status) }}</td>
                             <td style="font-size: 0.8rem; color: var(--text-secondary);">{{ h.remarks or '' }}</td>
                         </tr>
                         {% else %}

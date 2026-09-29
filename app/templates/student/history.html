@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_ui.html" import status_chip %}
 {% block title %}Attendance History — SmartAttend{% endblock %}
 {% block breadcrumb %}
     <a href="{{ url_for('student.dashboard') }}">Dashboard</a> / <span>History</span>
@@ -24,17 +25,7 @@
                     <td>{{ r.date.strftime('%d %b %Y') }}</td>
                     <td>{{ r.start_time.strftime('%H:%M') }} - {{ r.end_time.strftime('%H:%M') }}</td>
                     <td>{{ r.topic or '-' }}</td>
-                    <td>
-                        {% if r.status == 'present' %}
-                            <span class="status-chip status-safe">Present</span>
-                        {% elif r.status == 'absent' %}
-                            <span class="status-chip status-critical">Absent</span>
-                        {% elif r.status == 'late' %}
-                            <span class="status-chip status-warning">Late</span>
-                        {% else %}
-                            <span class="status-chip" style="background: rgba(100,116,139,0.15); color: var(--text-secondary);">Excused</span>
-                        {% endif %}
-                    </td>
+                    <td>{{ status_chip(r.status) }}</td>
                 </tr>
                 {% else %}
                 <tr><td colspan="4">No attendance records yet.</td></tr>
