@@ -36,6 +36,42 @@ SmartAttend is not just an attendance register. It answers the questions student
 * **Alerts & Notifications**: Receive warnings for Critical/Warning thresholds and continuous declining trends (e.g., 3 weeks of dropping attendance).
 * **History**: View detailed day-by-day attendance history.
 
+## 🗺️ How the Code Is Organised
+
+The project separates *calculating* from *storing* from *displaying*, so each
+piece can be read on its own.
+
+```
+app/
+├── models/             The database tables (users, subjects, attendance, ...)
+├── services/           All the thinking happens here
+│   ├── prediction_service.py   Pure maths. No database. The heart of the project.
+│   ├── attendance_service.py   Reads attendance from the DB and totals it up.
+│   └── settings_service.py     Reads the admin's rules (pass mark, lock window).
+├── blueprints/         One folder per role — each route just fetches and renders
+│   ├── auth/  admin/  faculty/  student/
+├── templates/          The HTML pages
+└── static/             CSS and a little JavaScript
+```
+
+**Where to start reading:** `app/services/prediction_service.py`. Every rule the
+system enforces is one short function there, with the algebra written out in the
+docstring, and none of it touches the database — so each rule can be checked by
+hand and is unit-tested in `tests/test_prediction_service.py`.
+
+The three numbers those functions pass around are:
+
+| Name | Meaning |
+|------|---------|
+| `attended` | classes the student was present for (present and late both count) |
+| `conducted` | classes that count against them (excused absences are excluded) |
+| `required` | the pass mark as a fraction, e.g. `0.75` for 75% |
+
+Each student's figures are worked out in exactly one place —
+`attendance_service.get_subject_summary()` — which the dashboards, the analytics
+pages and the CSV exports all call. That is why a student, their teacher and the
+admin can never be shown different numbers for the same subject.
+
 ## 🛠️ Tech Stack
 * **Backend**: Python, Flask, Flask-Login, Flask-WTF
 * **Database**: SQLite (via SQLAlchemy & Flask-Migrate) - *Easily swappable to PostgreSQL/MySQL.*

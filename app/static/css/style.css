@@ -345,6 +345,19 @@ a:hover {
     color: var(--red);
 }
 
+/*
+ * Status colours in one place. Templates write class="text-{{ status|lower }}"
+ * or class="progress-bar-fill fill-{{ status|lower }}" instead of repeating
+ * an if/elif colour block on every page.
+ */
+.text-safe     { color: var(--green); }
+.text-warning  { color: var(--amber); }
+.text-critical { color: var(--red); }
+
+.fill-safe     { background: var(--green); }
+.fill-warning  { background: var(--amber); }
+.fill-critical { background: var(--red); }
+
 /* ===== Toast Notifications ===== */
 .toast-container {
     position: fixed;

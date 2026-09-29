@@ -34,37 +34,16 @@
                 <strong>{{ "%.1f"|format(subj.percentage) }}%</strong>
             </div>
             <div class="progress-bar-track">
-                {% if subj.percentage >= (required_pct + 5) %}
-                    {% set bar_color = 'var(--green)' %}
-                {% elif subj.percentage >= required_pct %}
-                    {% set bar_color = 'var(--amber)' %}
-                {% else %}
-                    {% set bar_color = 'var(--red)' %}
-                {% endif %}
-                <div class="progress-bar-fill" style="width: {{ [subj.percentage, 100]|min }}%; background: {{ bar_color }};"></div>
+                <div class="progress-bar-fill fill-{{ subj.status|lower }}"
+                     style="width: {{ [subj.percentage, 100]|min }}%;"></div>
             </div>
         </div>
 
-        <!-- Guidance -->
+        <!-- Guidance (wording comes from prediction_service.guidance_message) -->
         <div style="font-size: 0.85rem; margin-bottom: 12px;">
-            {% if subj.status == 'Critical' %}
-                {% if subj.needed == 'impossible' %}
-                    <div style="color: var(--red);">⚠️ Attendance too low to recover.</div>
-                {% else %}
-                    <div style="color: var(--red);">📈 Attend next <strong>{{ subj.needed }}</strong> classes to reach {{ required_pct|int }}%.</div>
-                {% endif %}
-            {% elif subj.status == 'Warning' %}
-                <div style="color: var(--amber);">⚠️ At the boundary. Do not miss any classes.</div>
-            {% else %}
-                {% if subj.can_miss > 0 %}
-                    <div style="color: var(--green);">✅ Can safely miss <strong>{{ subj.can_miss }}</strong> more class{{ 'es' if subj.can_miss != 1 else '' }}.</div>
-                {% else %}
-                    <div style="color: var(--green);">✅ At minimum. Do not miss any classes.</div>
-                {% endif %}
-            {% endif %}
-
+            <div class="text-{{ subj.status|lower }}">{{ subj.guidance }}</div>
             {% if subj.declining %}
-                <div style="color: var(--red); margin-top: 4px;">📉 Declining trend detected over the last 4 weeks!</div>
+                <div class="text-critical" style="margin-top: 4px;">📉 Declining trend detected over the last 4 weeks!</div>
             {% endif %}
         </div>
 

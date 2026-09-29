@@ -14,7 +14,7 @@
                 Faculty: {{ cs.faculty.user.full_name }} • Section {{ cs.section }} • {{ cs.academic_year }}
             </p>
         </div>
-        <span class="status-chip status-{{ status|lower }}" style="font-size: 1rem; padding: 8px 20px;">{{ status }}</span>
+        <span class="status-chip status-{{ summary.status|lower }}" style="font-size: 1rem; padding: 8px 20px;">{{ summary.status }}</span>
     </div>
 </div>
 
@@ -26,25 +26,25 @@
         <div style="display: flex; gap: 16px; flex-wrap: wrap;">
             <div class="card" style="flex: 1; min-width: 120px; text-align: center;">
                 <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">Attended</div>
-                <div style="font-size: 2rem; font-weight: bold; color: var(--accent);">{{ A }}</div>
+                <div style="font-size: 2rem; font-weight: bold; color: var(--accent);">{{ summary.attended }}</div>
             </div>
             <div class="card" style="flex: 1; min-width: 120px; text-align: center;">
                 <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">Conducted</div>
-                <div style="font-size: 2rem; font-weight: bold; color: var(--accent);">{{ C }}</div>
+                <div style="font-size: 2rem; font-weight: bold; color: var(--accent);">{{ summary.conducted }}</div>
             </div>
             <div class="card" style="flex: 1; min-width: 120px; text-align: center;">
                 <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">Percentage</div>
-                <div style="font-size: 2rem; font-weight: bold;">{{ "%.1f"|format(percentage) }}%</div>
+                <div style="font-size: 2rem; font-weight: bold;">{{ "%.1f"|format(summary.percentage) }}%</div>
             </div>
             <div class="card" style="flex: 1; min-width: 120px; text-align: center;">
                 <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">Need to Attend</div>
-                <div style="font-size: 2rem; font-weight: bold; color: {% if needed and needed != 0 %}var(--red){% else %}var(--green){% endif %};">
-                    {{ needed if needed != 'impossible' else '∞' }}
+                <div style="font-size: 2rem; font-weight: bold; color: {% if summary.needed and summary.needed != 0 %}var(--red){% else %}var(--green){% endif %};">
+                    {{ summary.needed if summary.needed != 'impossible' else '∞' }}
                 </div>
             </div>
             <div class="card" style="flex: 1; min-width: 120px; text-align: center;">
                 <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">Can Miss</div>
-                <div style="font-size: 2rem; font-weight: bold; color: {% if can_miss > 0 %}var(--green){% else %}var(--amber){% endif %};">{{ can_miss }}</div>
+                <div style="font-size: 2rem; font-weight: bold; color: {% if summary.can_miss > 0 %}var(--green){% else %}var(--amber){% endif %};">{{ summary.can_miss }}</div>
             </div>
         </div>
 
@@ -53,18 +53,12 @@
             <h3>Attendance Progress</h3>
             <div style="margin-top: 8px;">
                 <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px;">
-                    <span>{{ A }}/{{ C }} classes attended</span>
+                    <span>{{ summary.attended }}/{{ summary.conducted }} classes attended</span>
                     <span>Required: {{ required_pct|int }}%</span>
                 </div>
                 <div class="progress-bar-track" style="height: 16px; position: relative;">
-                    {% if percentage >= (required_pct + 5) %}
-                        {% set bar_color = 'var(--green)' %}
-                    {% elif percentage >= required_pct %}
-                        {% set bar_color = 'var(--amber)' %}
-                    {% else %}
-                        {% set bar_color = 'var(--red)' %}
-                    {% endif %}
-                    <div class="progress-bar-fill" style="width: {{ [percentage, 100]|min }}%; background: {{ bar_color }}; height: 100%;"></div>
+                    <div class="progress-bar-fill fill-{{ summary.status|lower }}"
+                         style="width: {{ [summary.percentage, 100]|min }}%; height: 100%;"></div>
                     <!-- Required threshold marker -->
                     <div style="position: absolute; left: {{ required_pct }}%; top: -4px; bottom: -4px; width: 2px; background: var(--text-primary); opacity: 0.5;"></div>
                 </div>
@@ -72,29 +66,29 @@
         </div>
 
         <!-- Guidance -->
-        <div class="card" style="border-left: 4px solid {% if status == 'Critical' %}var(--red){% elif status == 'Warning' %}var(--amber){% else %}var(--green){% endif %};">
+        <div class="card" style="border-left: 4px solid {% if summary.status == 'Critical' %}var(--red){% elif summary.status == 'Warning' %}var(--amber){% else %}var(--green){% endif %};">
             <h3>📋 Guidance</h3>
-            <p style="font-size: 0.95rem; margin-top: 8px;">{{ guidance }}</p>
-            {% if declining %}
+            <p style="font-size: 0.95rem; margin-top: 8px;">{{ summary.guidance }}</p>
+            {% if summary.declining %}
                 <p style="color: var(--red); margin-top: 8px; font-weight: 500;">📉 Warning: Your attendance has been declining over the last 4 weeks.</p>
             {% endif %}
         </div>
 
         <!-- Weekly Trend (text-based) -->
-        {% if weekly_pcts|length > 1 %}
+        {% if summary.weekly_pcts|length > 1 %}
         <div class="card">
             <h3>📊 Weekly Trend</h3>
             <table class="data-table" style="margin-top: 8px;">
                 <thead>
                     <tr>
-                        {% for i in range(weekly_pcts|length) %}
+                        {% for i in range(summary.weekly_pcts|length) %}
                         <th>W{{ i + 1 }}</th>
                         {% endfor %}
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        {% for pct in weekly_pcts %}
+                        {% for pct in summary.weekly_pcts %}
                         <td style="text-align: center; font-weight: 500; color: {% if pct >= 0.75 %}var(--green){% elif pct >= 0.70 %}var(--amber){% else %}var(--red){% endif %};">
                             {{ "%.0f"|format(pct * 100) }}%
                         </td>
