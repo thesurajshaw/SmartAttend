@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_ui.html" import status_chip %}
 {% block title %}Sessions — {{ section.subject.code }} {% endblock %}
 {% block breadcrumb %}
     <a href="{{ url_for('faculty.dashboard') }}">Dashboard</a> / <span>{{ section.subject.code }} (Sec {{ section.section }}) Sessions</span>
@@ -25,13 +26,7 @@
                     <td>{{ s.session_date.strftime('%d %b %Y') }}</td>
                     <td>{{ s.start_time.strftime('%H:%M') }} - {{ s.end_time.strftime('%H:%M') }}</td>
                     <td>{{ s.topic or '-' }}</td>
-                    <td>
-                        {% if s.status == 'open' %}
-                            <span class="status-chip status-safe">Open</span>
-                        {% else %}
-                            <span class="status-chip status-critical">Locked</span>
-                        {% endif %}
-                    </td>
+                    <td>{{ status_chip(s.status) }}</td>
                     <td>
                         <a href="{{ url_for('faculty.marking_grid', session_id=s.id) }}" class="btn btn-sm btn-primary">
                             {% if s.status == 'open' %}Mark / Edit{% else %}View{% endif %}

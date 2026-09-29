@@ -477,6 +477,12 @@ a:hover {
 
 .dist-bar-lg { height: 24px; }
 
+/* The "green = Safe" key under a distribution bar. */
+.dist-legend { display: flex; gap: 16px; font-size: 0.8rem; }
+
+/* A small progress bar sitting inline next to its percentage. */
+.bar-cell { display: flex; align-items: center; gap: 8px; }
+
 /* ===== Layout helpers =====
  * Three ways of laying cards out in a row. They differ only in spacing,
  * but are named for what they hold so a reader can tell them apart.
@@ -531,10 +537,21 @@ a:hover {
     margin-bottom: 4px;
 }
 
+/* Heading-sized caption, for tiles whose label is an <h3>. */
+.stat-label-lg {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+/*
+ * Size and weight only -- no colour. A tile states its own colour with
+ * text-accent / text-safe / text-warning / text-critical. If this rule
+ * set a colour it would quietly win over those, because it is defined
+ * further down the file at the same specificity.
+ */
 .stat-value {
     font-size: 2rem;
     font-weight: bold;
-    color: var(--accent);
 }
 
 .stat-value-lg { font-size: 2.5rem; }
@@ -544,14 +561,121 @@ a:hover {
     color: var(--text-secondary);
 }
 
+/* ===== Subject cards (student dashboard) ===== */
+.subject-card      { flex: 1; min-width: 320px; }
+.subject-card-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+.subject-card-code { margin: 0; color: var(--accent); }
+.subject-card-name { font-weight: 500; }
+.subject-guidance  { font-size: 0.85rem; margin-bottom: 12px; }
+
+/* The "18/24 classes ..... 75.0%" line above a progress bar. */
+.bar-caption {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+}
+
+/* ===== Notification cards ===== */
+.alert-card      { margin-bottom: 12px; }
+.alert-card.is-read { opacity: 0.7; }
+.alert-head      { display: flex; justify-content: space-between; align-items: flex-start; }
+.alert-title-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.alert-message   { color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+.alert-time      { color: var(--text-secondary); white-space: nowrap; margin-left: 16px; }
+
+/* ===== Subject detail page ===== */
+/* A wide column of stacked cards, with a narrower sidebar beside it. */
+.detail-main { flex: 2; min-width: 300px; display: flex; flex-direction: column; gap: 24px; }
+.detail-side { flex: 1; min-width: 280px; }
+.sticky-card { position: sticky; top: 80px; }
+
+/* Taller progress bar carrying the required-percentage marker. */
+.progress-bar-track-lg { height: 16px; position: relative; }
+
+/* The vertical line marking the pass mark. Its left offset is set inline,
+   because only the template knows the configured percentage. */
+.threshold-marker {
+    position: absolute;
+    top: -4px;
+    bottom: -4px;
+    width: 2px;
+    background: var(--text-primary);
+    opacity: 0.5;
+}
+
+.guidance-text { font-size: 0.95rem; margin-top: 8px; }
+.week-cell     { text-align: center; font-weight: 500; }
+.remarks-cell  { font-size: 0.8rem; color: var(--text-secondary); }
+
+.radio-row  { display: flex; gap: 12px; }
+.clickable  { cursor: pointer; }
+.big-number { font-size: 1.5rem; }
+
+/* The boxed answer the what-if calculator prints. */
+.whatif-result {
+    margin-top: 20px;
+    padding: 16px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+    background: var(--bg-primary);
+}
+
+/* ===== Faculty section cards ===== */
+.section-card      { flex: 1; min-width: 300px; }
+.section-card-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+
+/* A row of buttons sitting side by side. */
+.btn-row       { display: flex; gap: 8px; }
+.btn-row-tight { display: flex; gap: 4px; }
+.btn-grow      { flex: 1; }
+
+/* ===== Corrections table ===== */
+.row-highlight { background-color: var(--bg-secondary); }
+.reason-cell   { max-width: 200px; white-space: normal; }
+.review-form   { display: flex; gap: 4px; flex-direction: column; }
+
+.input-sm {
+    font-size: 0.8rem;
+    padding: 4px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+/* ===== Audit log ===== */
+.log-table { font-size: 0.9rem; }
+
+/* The before / after pair in the Changes column. */
+.log-old { color: var(--red); font-size: 0.8rem; text-decoration: line-through; }
+.log-new { color: var(--green); font-size: 0.8rem; }
+
+/* Centred Previous / Page n of m / Next strip. */
+.pager-center { display: flex; justify-content: center; gap: 8px; margin-top: 16px; }
+.pager-label  { padding: 4px 12px; background: var(--bg-secondary); border-radius: 4px; }
+.btn-pager    { background: var(--bg-secondary); }
+
 /* ===== Small helpers ===== */
+.m-0       { margin: 0; }
+.medium    { font-weight: 500; }
+.hint      { color: var(--text-secondary); font-size: 0.85rem; }
+/* A quieter button: same shape as .btn, outlined instead of filled. */
+.btn-ghost {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.semibold  { font-weight: 600; }
 .muted     { color: var(--text-secondary); }
 .muted-sm  { color: var(--text-secondary); font-size: 0.9rem; }
 .nowrap    { white-space: nowrap; }
 .form-inline { display: inline; }
 
+.mt-4  { margin-top: 4px; }
 .mt-8  { margin-top: 8px; }
 .mb-8  { margin-bottom: 8px; }
+.mb-12 { margin-bottom: 12px; }
+.mb-16 { margin-bottom: 16px; }
 .mb-24 { margin-bottom: 24px; }
 
 /* Error pages (403 / 404 / 500). */

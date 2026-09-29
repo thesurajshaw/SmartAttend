@@ -152,8 +152,21 @@ def marking_grid(session_id):
             db.session.rollback()
             flash('Database error occurred. Entire transaction was rolled back.', 'error')
 
+    # Which records already have a correction waiting on the admin. Asked
+    # once here, rather than lazily per row while the page renders.
+    pending_correction_ids = set()
+    if records:
+        pending_correction_ids = {
+            c.attendance_record_id for c in CorrectionRequest.query.filter(
+                CorrectionRequest.attendance_record_id.in_([r.id for r in records.values()]),
+                CorrectionRequest.status == 'pending',
+            ).all()
+        }
+
     return render_template('faculty/marking_grid.html', session=session,
-                           enrollments=enrollments, records=records, is_locked=is_locked)
+                           enrollments=enrollments, records=records,
+                           is_locked=is_locked,
+                           pending_correction_ids=pending_correction_ids)
 
 
 def _save_mark(session, student_id, records):
@@ -220,6 +233,14 @@ def section_analytics(section_id):
     for student in students:
         status_counts[student['status']] += 1
 
+    # What share of the class sits in each zone. Worked out here so the
+    # template never has to guard against dividing by zero.
+    total = len(students)
+    status_percents = {
+        zone: (count / total * 100) if total else 0
+        for zone, count in status_counts.items()
+    }
+
     session_count = (AttendanceSession.query
                      .filter_by(class_section_id=section.id)
                      .filter(AttendanceSession.status != 'cancelled')
@@ -227,8 +248,9 @@ def section_analytics(section_id):
 
     return render_template('faculty/section_analytics.html',
                            section=section, students=students,
-                           status_counts=status_counts, total=len(students),
-                           session_count=session_count, required_pct=required * 100)
+                           status_counts=status_counts,
+                           status_percents=status_percents, total=total,
+                           session_count=session_count)
 
 
 @faculty_bp.route('/sections/<int:section_id>/export')

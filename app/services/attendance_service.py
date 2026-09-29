@@ -106,8 +106,19 @@ def get_subject_summary(student_id, class_section_id, required, warning_band):
         'percentage': predict.percentage(attended, conducted),
         'status': status,
         'needed': needed,
+        # The same number ready to print. get_classes_needed returns the word
+        # 'impossible' when the target cannot be reached; turning that into a
+        # symbol here keeps the check out of three separate templates. CSV
+        # exports use 'needed' above, so the word survives in the file.
+        'needed_display': '∞' if needed == 'impossible' else needed,
         'can_miss': can_miss,
         'weekly_pcts': weekly,
+        # Each week with its colour already decided, for the trend table.
+        'weekly_rows': [
+            {'pct': p * 100,
+             'status': predict.status_for_fraction(p, required, warning_band)}
+            for p in weekly
+        ],
         'declining': predict.detect_declining_trend(weekly),
         'guidance': predict.guidance_message(status, needed, can_miss, required),
     }

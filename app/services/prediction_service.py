@@ -26,26 +26,32 @@ def percentage(attended, conducted):
     return attended / conducted * 100
 
 
-def get_status(attended, conducted, required, warning_band=0.05):
+def status_for_fraction(fraction, required, warning_band=0.05):
     """
-    Which zone is the student in?
+    Which zone a ready-made fraction (0 to 1) falls in.
 
         Safe      at or above the pass mark plus the warning band
         Warning   at or above the pass mark, but inside the band
         Critical  below the pass mark
 
     With a 75% pass mark and a 5% band: Safe is >= 80%, Warning is
-    75-80%, Critical is below 75%. A student with no classes yet is Safe.
+    75-80%, Critical is below 75%.
+    """
+    if fraction >= required + warning_band:
+        return 'Safe'
+    if fraction >= required:
+        return 'Warning'
+    return 'Critical'
+
+
+def get_status(attended, conducted, required, warning_band=0.05):
+    """
+    Which zone the student is in, from their raw counts.
+    A student with no classes yet is Safe -- they have not missed anything.
     """
     if conducted == 0:
         return 'Safe'
-
-    current = attended / conducted
-    if current >= required + warning_band:
-        return 'Safe'
-    if current >= required:
-        return 'Warning'
-    return 'Critical'
+    return status_for_fraction(attended / conducted, required, warning_band)
 
 
 def get_classes_needed(attended, conducted, required):

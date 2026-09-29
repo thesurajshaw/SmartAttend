@@ -81,13 +81,15 @@ def _all_students_summaries():
 @login_required
 @role_required('admin')
 def dashboard():
-    stats = {
-        'students': Student.query.count(),
-        'faculty': Faculty.query.count(),
-        'departments': Department.query.count(),
-        'subjects': Subject.query.count(),
-        'sections': ClassSection.query.count(),
-    }
+    # A list, not a dict, so the page can simply loop and the order here
+    # is the order on screen.
+    stats = [
+        ('Students', Student.query.count()),
+        ('Faculty', Faculty.query.count()),
+        ('Departments', Department.query.count()),
+        ('Subjects', Subject.query.count()),
+        ('Class Sections', ClassSection.query.count()),
+    ]
     return render_template('admin/dashboard.html', stats=stats)
 
 
@@ -277,9 +279,18 @@ def analytics():
 
     at_risk.sort(key=lambda s: s['percentage'])  # worst first
 
+    # Bar widths for the distribution column, worked out here so the
+    # template only has to place them.
+    for row in per_section.values():
+        span = row['total'] or 1          # a section with no students draws no bar
+        row['safe_pct'] = row['safe'] / span * 100
+        row['warning_pct'] = row['warning'] / span * 100
+        row['critical_pct'] = row['critical'] / span * 100
+
     return render_template('admin/analytics.html',
                            section_stats=list(per_section.values()),
-                           overall=overall, at_risk=at_risk)
+                           overall=overall, at_risk=at_risk,
+                           total_enrollments=sum(overall.values()))
 
 
 # --- Full CSV export (every student, every section) ---

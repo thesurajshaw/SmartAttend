@@ -1,17 +1,18 @@
 {% extends "base.html" %}
+{% from "_ui.html" import status_chip %}
 {% block title %}Section Analytics — {{ section.subject.code }}{% endblock %}
 {% block breadcrumb %}
-    <a href="{{ url_for('faculty.dashboard') }}">Dashboard</a> / 
-    <a href="{{ url_for('faculty.section_sessions', section_id=section.id) }}">{{ section.subject.code }}</a> / 
+    <a href="{{ url_for('faculty.dashboard') }}">Dashboard</a> /
+    <a href="{{ url_for('faculty.section_sessions', section_id=section.id) }}">{{ section.subject.code }}</a> /
     <span>Analytics</span>
 {% endblock %}
 
 {% block content %}
-<div class="card" style="margin-bottom: 24px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+<div class="card mb-24">
+    <div class="split-row">
         <div>
             <h2 style="margin: 0;">{{ section.subject.code }} — {{ section.subject.name }}</h2>
-            <p style="color: var(--text-secondary); margin-top: 4px;">
+            <p class="muted mt-4">
                 Section {{ section.section }} • {{ session_count }} sessions conducted • {{ total }} students enrolled
             </p>
         </div>
@@ -19,51 +20,51 @@
     </div>
 </div>
 
-<!-- Status Summary -->
-<div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px;">
-    <div class="card" style="flex: 1; min-width: 150px; text-align: center;">
-        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">Safe</div>
-        <div style="font-size: 2rem; font-weight: bold; color: var(--green);">{{ status_counts.Safe }}</div>
-        <div style="font-size: 0.75rem; color: var(--text-secondary);">{{ "%.0f"|format(status_counts.Safe / total * 100) if total > 0 else 0 }}%</div>
+<!-- How many students sit in each zone -->
+<div class="stat-row mb-24">
+    <div class="card stat-card">
+        <div class="stat-label">Safe</div>
+        <div class="stat-value text-safe">{{ status_counts.Safe }}</div>
+        <div class="stat-sub">{{ "%.0f"|format(status_percents.Safe) }}%</div>
     </div>
-    <div class="card" style="flex: 1; min-width: 150px; text-align: center;">
-        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">Warning</div>
-        <div style="font-size: 2rem; font-weight: bold; color: var(--amber);">{{ status_counts.Warning }}</div>
-        <div style="font-size: 0.75rem; color: var(--text-secondary);">{{ "%.0f"|format(status_counts.Warning / total * 100) if total > 0 else 0 }}%</div>
+    <div class="card stat-card">
+        <div class="stat-label">Warning</div>
+        <div class="stat-value text-warning">{{ status_counts.Warning }}</div>
+        <div class="stat-sub">{{ "%.0f"|format(status_percents.Warning) }}%</div>
     </div>
-    <div class="card" style="flex: 1; min-width: 150px; text-align: center;">
-        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">Critical</div>
-        <div style="font-size: 2rem; font-weight: bold; color: var(--red);">{{ status_counts.Critical }}</div>
-        <div style="font-size: 0.75rem; color: var(--text-secondary);">{{ "%.0f"|format(status_counts.Critical / total * 100) if total > 0 else 0 }}%</div>
+    <div class="card stat-card">
+        <div class="stat-label">Critical</div>
+        <div class="stat-value text-critical">{{ status_counts.Critical }}</div>
+        <div class="stat-sub">{{ "%.0f"|format(status_percents.Critical) }}%</div>
     </div>
 </div>
 
-<!-- Visual bar -->
+<!-- The same three numbers as one bar -->
 {% if total > 0 %}
-<div class="card" style="margin-bottom: 24px;">
+<div class="card mb-24">
     <h3>Status Distribution</h3>
-    <div style="display: flex; height: 24px; border-radius: 4px; overflow: hidden; margin-top: 8px;">
+    <div class="dist-bar dist-bar-lg mt-8">
         {% if status_counts.Safe > 0 %}
-        <div style="width: {{ status_counts.Safe / total * 100 }}%; background: var(--green);" title="Safe: {{ status_counts.Safe }}"></div>
+        <div class="fill-safe" style="width: {{ status_percents.Safe }}%;" title="Safe: {{ status_counts.Safe }}"></div>
         {% endif %}
         {% if status_counts.Warning > 0 %}
-        <div style="width: {{ status_counts.Warning / total * 100 }}%; background: var(--amber);" title="Warning: {{ status_counts.Warning }}"></div>
+        <div class="fill-warning" style="width: {{ status_percents.Warning }}%;" title="Warning: {{ status_counts.Warning }}"></div>
         {% endif %}
         {% if status_counts.Critical > 0 %}
-        <div style="width: {{ status_counts.Critical / total * 100 }}%; background: var(--red);" title="Critical: {{ status_counts.Critical }}"></div>
+        <div class="fill-critical" style="width: {{ status_percents.Critical }}%;" title="Critical: {{ status_counts.Critical }}"></div>
         {% endif %}
     </div>
-    <div style="display: flex; gap: 16px; margin-top: 8px; font-size: 0.8rem;">
+    <div class="dist-legend mt-8">
         <span>🟢 Safe</span> <span>🟡 Warning</span> <span>🔴 Critical</span>
     </div>
 </div>
 {% endif %}
 
-<!-- Per-student table -->
+<!-- Every student in the section -->
 <div class="card">
     <h3>Per-Student Breakdown</h3>
-    <div style="overflow-x: auto;">
-        <table class="data-table" style="margin-top: 8px;">
+    <div class="table-scroll">
+        <table class="data-table mt-8">
             <thead>
                 <tr>
                     <th>Roll No</th>
@@ -85,24 +86,20 @@
                     <td>{{ s.attended }}</td>
                     <td>{{ s.conducted }}</td>
                     <td>
-                        <div style="display: flex; align-items: center; gap: 8px;">
+                        <div class="bar-cell">
+                            {# Colour comes from the status the service already worked out,
+                               so this bar can never disagree with the chip beside it. #}
                             <div class="progress-bar-track" style="width: 80px;">
-                                {% if s.percentage >= (required_pct + 5) %}
-                                    {% set bar_color = 'var(--green)' %}
-                                {% elif s.percentage >= required_pct %}
-                                    {% set bar_color = 'var(--amber)' %}
-                                {% else %}
-                                    {% set bar_color = 'var(--red)' %}
-                                {% endif %}
-                                <div class="progress-bar-fill" style="width: {{ [s.percentage, 100]|min }}%; background: {{ bar_color }};"></div>
+                                <div class="progress-bar-fill fill-{{ s.status|lower }}"
+                                     style="width: {{ [s.percentage, 100]|min }}%;"></div>
                             </div>
                             {{ "%.1f"|format(s.percentage) }}%
                         </div>
                     </td>
-                    <td><span class="status-chip status-{{ s.status|lower }}">{{ s.status }}</span></td>
-                    <td>{{ s.needed if s.needed != 'impossible' else '∞' }}</td>
+                    <td>{{ status_chip(s.status) }}</td>
+                    <td>{{ s.needed_display }}</td>
                     <td>{{ s.can_miss }}</td>
-                    <td>{% if s.declining %}<span style="color: var(--red);">📉</span>{% else %}—{% endif %}</td>
+                    <td>{% if s.declining %}<span class="text-critical">📉</span>{% else %}—{% endif %}</td>
                 </tr>
                 {% endfor %}
             </tbody>
