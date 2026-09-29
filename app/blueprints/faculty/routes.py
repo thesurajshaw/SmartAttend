@@ -1,6 +1,6 @@
 import csv
 import io
-from datetime import datetime
+from datetime import datetime, date
 
 from flask import (Blueprint, render_template, request, redirect, url_for,
                    flash, abort, Response)
@@ -110,7 +110,11 @@ def section_sessions(section_id):
         _lock_if_expired(session)
     db.session.commit()
 
-    return render_template('faculty/session_list.html', section=section, sessions=sessions)
+    return render_template('faculty/session_list.html', section=section,
+                           sessions=sessions,
+                           # Pre-fills the "date" box on the create form.
+                           # <input type="date"> requires YYYY-MM-DD.
+                           current_date=date.today().isoformat())
 
 
 @faculty_bp.route('/session/<int:session_id>/mark', methods=['GET', 'POST'])

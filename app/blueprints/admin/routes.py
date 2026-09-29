@@ -253,8 +253,6 @@ def settings():
 @login_required
 @role_required('admin')
 def analytics():
-    required, _ = get_rules()
-
     per_section = {}     # section id -> the row shown in the sections table
     overall = {'Safe': 0, 'Warning': 0, 'Critical': 0}
     at_risk = []
@@ -281,8 +279,7 @@ def analytics():
 
     return render_template('admin/analytics.html',
                            section_stats=list(per_section.values()),
-                           overall=overall, at_risk=at_risk,
-                           required_pct=required * 100)
+                           overall=overall, at_risk=at_risk)
 
 
 # --- Full CSV export (every student, every section) ---

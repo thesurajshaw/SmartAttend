@@ -13,6 +13,15 @@
     --green: #22c55e;
     --amber: #f59e0b;
     --red: #ef4444;
+    --slate: #64748b;
+
+    /* Faded versions of the four colours above, used as chip backgrounds.
+       Defined here so a colour and its tint can never drift apart. */
+    --green-soft: rgba(34, 197, 94, 0.15);
+    --amber-soft: rgba(245, 158, 11, 0.15);
+    --red-soft: rgba(239, 68, 68, 0.15);
+    --slate-soft: rgba(100, 116, 139, 0.15);
+
     --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     --radius: 8px;
 }
@@ -330,29 +339,44 @@ a:hover {
     text-transform: uppercase;
 }
 
-.status-safe {
-    background: rgba(34, 197, 94, 0.15);
-    color: var(--green);
-}
-
-.status-warning {
-    background: rgba(245, 158, 11, 0.15);
-    color: var(--amber);
-}
-
-.status-critical {
-    background: rgba(239, 68, 68, 0.15);
-    color: var(--red);
-}
-
 /*
- * Status colours in one place. Templates write class="text-{{ status|lower }}"
- * or class="progress-bar-fill fill-{{ status|lower }}" instead of repeating
- * an if/elif colour block on every page.
+ * Which words are green, which are amber, which are red.
+ *
+ * Every status word in the system is listed once, here. A template never
+ * decides a colour; it just writes the word it already has:
+ *
+ *     <span class="status-chip status-{{ record.status|lower }}">
+ *
+ * so 'present' comes out green and 'absent' red without a single if/else
+ * in the HTML. Adding a new status means adding it to one line below.
  */
+.status-safe,
+.status-present,
+.status-open,
+.status-approved   { background: var(--green-soft); color: var(--green); }
+
+.status-warning,
+.status-late,
+.status-pending    { background: var(--amber-soft); color: var(--amber); }
+
+.status-critical,
+.status-absent,
+.status-locked,
+.status-rejected   { background: var(--red-soft); color: var(--red); }
+
+.status-excused,
+.status-neutral    { background: var(--slate-soft); color: var(--text-secondary); }
+
+/* Bigger chips for page headings. */
+.status-chip-md { font-size: 0.9rem; padding: 6px 16px; }
+.status-chip-lg { font-size: 1rem; padding: 8px 20px; }
+
+/* The same four colours as plain text, or as a solid fill for progress bars. */
 .text-safe     { color: var(--green); }
 .text-warning  { color: var(--amber); }
 .text-critical { color: var(--red); }
+.text-accent   { color: var(--accent); }
+.text-muted    { color: var(--text-secondary); }
 
 .fill-safe     { background: var(--green); }
 .fill-warning  { background: var(--amber); }
@@ -442,6 +466,100 @@ a:hover {
     border-radius: 4px;
     transition: width 0.4s ease;
 }
+
+/* A stacked bar showing how a class splits into Safe / Warning / Critical. */
+.dist-bar {
+    display: flex;
+    height: 16px;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.dist-bar-lg { height: 24px; }
+
+/* ===== Layout helpers =====
+ * Three ways of laying cards out in a row. They differ only in spacing,
+ * but are named for what they hold so a reader can tell them apart.
+ */
+.page-columns { display: flex; flex-wrap: wrap; gap: 24px; }  /* main + side column */
+.card-grid    { display: flex; flex-wrap: wrap; gap: 20px; }  /* a grid of cards    */
+.stat-row     { display: flex; flex-wrap: wrap; gap: 16px; }  /* a strip of numbers */
+
+.col-main { flex: 2; min-width: 300px; }
+.col-side { flex: 1; min-width: 250px; }
+
+/* Let a wide table scroll sideways instead of bursting its card. */
+.table-scroll { overflow-x: auto; }
+
+/* Title on the left, status chip or button on the right. */
+.split-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.split-row-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+/* A card with a coloured spine down its left edge, to signal severity. */
+.card-spine-safe     { border-left: 4px solid var(--green); }
+.card-spine-warning  { border-left: 4px solid var(--amber); }
+.card-spine-critical { border-left: 4px solid var(--red); }
+.card-spine-info     { border-left: 4px solid var(--accent); }
+
+/* ===== Stat cards (the big-number tiles) =====
+ * Three widths are kept rather than one, because the number of tiles per
+ * row differs by page and a single width would move the wrap point.
+ */
+.stat-card        { flex: 1; min-width: 150px; text-align: center; }
+.stat-card-narrow { min-width: 120px; }
+.stat-card-wide   { min-width: 200px; }
+
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--accent);
+}
+
+.stat-value-lg { font-size: 2.5rem; }
+
+.stat-sub {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+/* ===== Small helpers ===== */
+.muted     { color: var(--text-secondary); }
+.muted-sm  { color: var(--text-secondary); font-size: 0.9rem; }
+.nowrap    { white-space: nowrap; }
+.form-inline { display: inline; }
+
+.mt-8  { margin-top: 8px; }
+.mb-8  { margin-bottom: 8px; }
+.mb-24 { margin-bottom: 24px; }
+
+/* Error pages (403 / 404 / 500). */
+.error-page {
+    text-align: center;
+    padding: 48px 24px;
+    max-width: 500px;
+    margin: 40px auto;
+}
+
+.error-code { font-size: 4rem; margin: 0; }
 
 /* ===== Responsive ===== */
 @media (max-width: 768px) {

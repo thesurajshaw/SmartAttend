@@ -88,12 +88,7 @@ def dashboard():
     subjects, required = _my_subjects()
     _check_alerts(current_user.student_profile, subjects, required)
 
-    unread_count = Notification.query.filter_by(
-        user_id=current_user.id, is_read=False
-    ).count()
-
-    return render_template('student/dashboard.html', subjects=subjects,
-                           required_pct=required * 100, unread_count=unread_count)
+    return render_template('student/dashboard.html', subjects=subjects)
 
 
 @student_bp.route('/subject/<int:section_id>')
