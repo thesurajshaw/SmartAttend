@@ -1,0 +1,21 @@
+{#
+  The shape every error page shares. 403, 404 and 500 fill in the four
+  slots below and nothing else, so they stay easy to compare side by side.
+#}
+{% extends "base.html" %}
+
+{% block breadcrumb %}<span>Error {% block code %}{% endblock %}</span>{% endblock %}
+
+{% block content %}
+<div class="card error-page">
+    <h1 class="error-code {% block code_colour %}text-accent{% endblock %}">{{ self.code() }}</h1>
+    <h2 class="mt-8">{% block heading %}{% endblock %}</h2>
+    <p class="muted mb-24">{% block message %}{% endblock %}</p>
+
+    {% if current_user.is_authenticated %}
+        <a href="{{ url_for(current_user.role + '.dashboard') }}" class="btn btn-primary">Return to Dashboard</a>
+    {% else %}
+        <a href="{{ url_for('auth.login') }}" class="btn btn-primary">Return to Login</a>
+    {% endif %}
+</div>
+{% endblock %}

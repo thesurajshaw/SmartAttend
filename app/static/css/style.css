@@ -491,6 +491,9 @@ a:hover {
 /* Let a wide table scroll sideways instead of bursting its card. */
 .table-scroll { overflow-x: auto; }
 
+/* Prev / Next links under a paginated table. */
+.pager { display: flex; gap: 10px; margin-top: 16px; }
+
 /* Title on the left, status chip or button on the right. */
 .split-row {
     display: flex;

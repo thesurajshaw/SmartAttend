@@ -1,75 +1,71 @@
-{% extends "base.html" %}
+{% extends "_crud_page.html" %}
 {% from "_ui.html" import delete_button with context %}
 {% block title %}Students — SmartAttend{% endblock %}
 {% block breadcrumb %}
     <a href="{{ url_for('admin.dashboard') }}">Dashboard</a> / <span>Students</span>
 {% endblock %}
 
-{% block content %}
-<div style="display: flex; gap: 24px; flex-wrap: wrap;">
-    <div class="card" style="flex: 2; min-width: 300px; overflow-x: auto;">
-        <h3>🎓 Student Directory</h3>
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Roll No</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Dept</th>
-                    <th>Sem</th>
-                    <th>Sec</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for s in pagination.items %}
-                <tr>
-                    <td><strong>{{ s.roll_no }}</strong></td>
-                    <td>{{ s.user.full_name }}</td>
-                    <td>{{ s.user.email }}</td>
-                    <td>{{ s.department.code }}</td>
-                    <td>{{ s.semester }}</td>
-                    <td>{{ s.section }}</td>
-                    <td>
-                        {{ delete_button(url_for('admin.delete_student', id=s.id), 'Del') }}
-                    </td>
-                </tr>
-                {% else %}
-                <tr><td colspan="7">No students found.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        
-        <div style="margin-top: 16px; display: flex; gap: 10px;">
-            {% if pagination.has_prev %}
-                <a href="{{ url_for('admin.students', page=pagination.prev_num) }}" class="btn btn-sm btn-primary">← Prev</a>
-            {% endif %}
-            {% if pagination.has_next %}
-                <a href="{{ url_for('admin.students', page=pagination.next_num) }}" class="btn btn-sm btn-primary">Next →</a>
-            {% endif %}
-        </div>
-    </div>
+{% block list_title %}🎓 Student Directory{% endblock %}
+{% block list_table %}
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Roll No</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Dept</th>
+            <th>Sem</th>
+            <th>Sec</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for s in pagination.items %}
+        <tr>
+            <td><strong>{{ s.roll_no }}</strong></td>
+            <td>{{ s.user.full_name }}</td>
+            <td>{{ s.user.email }}</td>
+            <td>{{ s.department.code }}</td>
+            <td>{{ s.semester }}</td>
+            <td>{{ s.section }}</td>
+            <td>
+                {{ delete_button(url_for('admin.delete_student', id=s.id), 'Del') }}
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7">No students found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
 
-    <div class="card" style="flex: 1; min-width: 250px;">
-        <h3>Add Student</h3>
-        <form method="POST" action="{{ url_for('admin.students') }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <div class="form-group"><label>Full Name</label><input type="text" name="full_name" required></div>
-            <div class="form-group"><label>Email</label><input type="email" name="email" required></div>
-            <div class="form-group"><label>Roll No</label><input type="text" name="roll_no" required></div>
-            <div class="form-group">
-                <label>Department</label>
-                <select name="department_id" required>
-                    {% for d in departments %}
-                    <option value="{{ d.id }}">{{ d.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="form-group"><label>Semester</label><input type="number" name="semester" required min="1" max="8"></div>
-            <div class="form-group"><label>Section</label><input type="text" name="section" required></div>
-            <div class="form-group"><label>Admission Year</label><input type="number" name="admission_year" required></div>
-            <button type="submit" class="btn btn-primary btn-block">Add Student</button>
-        </form>
-    </div>
+{% block list_footer %}
+<div class="pager">
+    {% if pagination.has_prev %}
+        <a href="{{ url_for('admin.students', page=pagination.prev_num) }}" class="btn btn-sm btn-primary">← Prev</a>
+    {% endif %}
+    {% if pagination.has_next %}
+        <a href="{{ url_for('admin.students', page=pagination.next_num) }}" class="btn btn-sm btn-primary">Next →</a>
+    {% endif %}
 </div>
+{% endblock %}
+
+{% block form_title %}Add Student{% endblock %}
+{% block form_action %}{{ url_for('admin.students') }}{% endblock %}
+{% block submit_label %}Add Student{% endblock %}
+{% block form_fields %}
+<div class="form-group"><label>Full Name</label><input type="text" name="full_name" required></div>
+<div class="form-group"><label>Email</label><input type="email" name="email" required></div>
+<div class="form-group"><label>Roll No</label><input type="text" name="roll_no" required></div>
+<div class="form-group">
+    <label>Department</label>
+    <select name="department_id" required>
+        {% for d in departments %}
+        <option value="{{ d.id }}">{{ d.name }}</option>
+        {% endfor %}
+    </select>
+</div>
+<div class="form-group"><label>Semester</label><input type="number" name="semester" required min="1" max="8"></div>
+<div class="form-group"><label>Section</label><input type="text" name="section" required></div>
+<div class="form-group"><label>Admission Year</label><input type="number" name="admission_year" required></div>
 {% endblock %}

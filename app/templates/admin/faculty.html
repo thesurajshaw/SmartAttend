@@ -1,63 +1,57 @@
-{% extends "base.html" %}
+{% extends "_crud_page.html" %}
 {% from "_ui.html" import delete_button with context %}
 {% block title %}Faculty — SmartAttend{% endblock %}
 {% block breadcrumb %}
     <a href="{{ url_for('admin.dashboard') }}">Dashboard</a> / <span>Faculty</span>
 {% endblock %}
 
-{% block content %}
-<div style="display: flex; gap: 24px; flex-wrap: wrap;">
-    <div class="card" style="flex: 2; min-width: 300px; overflow-x: auto;">
-        <h3>👨‍🏫 Faculty Directory</h3>
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Emp ID</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Department</th>
-                    <th>Designation</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for f in faculty %}
-                <tr>
-                    <td><strong>{{ f.employee_id }}</strong></td>
-                    <td>{{ f.user.full_name }}</td>
-                    <td>{{ f.user.email }}</td>
-                    <td>{{ f.department.code }}</td>
-                    <td>{{ f.designation }}</td>
-                    <td>
-                        {{ delete_button(url_for('admin.delete_faculty', id=f.id), 'Del') }}
-                    </td>
-                </tr>
-                {% else %}
-                <tr><td colspan="6">No faculty found.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+{% block list_title %}👨‍🏫 Faculty Directory{% endblock %}
+{% block list_table %}
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Emp ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Department</th>
+            <th>Designation</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for f in faculty %}
+        <tr>
+            <td><strong>{{ f.employee_id }}</strong></td>
+            <td>{{ f.user.full_name }}</td>
+            <td>{{ f.user.email }}</td>
+            <td>{{ f.department.code }}</td>
+            <td>{{ f.designation }}</td>
+            <td>
+                {{ delete_button(url_for('admin.delete_faculty', id=f.id), 'Del') }}
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6">No faculty found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
 
-    <div class="card" style="flex: 1; min-width: 250px;">
-        <h3>Add Faculty</h3>
-        <form method="POST" action="{{ url_for('admin.faculty_list') }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <div class="form-group"><label>Full Name</label><input type="text" name="full_name" required></div>
-            <div class="form-group"><label>Email</label><input type="email" name="email" required></div>
-            <div class="form-group"><label>Employee ID</label><input type="text" name="employee_id" required></div>
-            <div class="form-group">
-                <label>Department</label>
-                <select name="department_id" required>
-                    {% for d in departments %}
-                    <option value="{{ d.id }}">{{ d.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="form-group"><label>Designation</label><input type="text" name="designation" required></div>
-            <div class="form-group"><label>Joining Date</label><input type="date" name="joining_date" required></div>
-            <button type="submit" class="btn btn-primary btn-block">Add Faculty</button>
-        </form>
-    </div>
+{% block form_title %}Add Faculty{% endblock %}
+{% block form_action %}{{ url_for('admin.faculty_list') }}{% endblock %}
+{% block submit_label %}Add Faculty{% endblock %}
+{% block form_fields %}
+<div class="form-group"><label>Full Name</label><input type="text" name="full_name" required></div>
+<div class="form-group"><label>Email</label><input type="email" name="email" required></div>
+<div class="form-group"><label>Employee ID</label><input type="text" name="employee_id" required></div>
+<div class="form-group">
+    <label>Department</label>
+    <select name="department_id" required>
+        {% for d in departments %}
+        <option value="{{ d.id }}">{{ d.name }}</option>
+        {% endfor %}
+    </select>
 </div>
+<div class="form-group"><label>Designation</label><input type="text" name="designation" required></div>
+<div class="form-group"><label>Joining Date</label><input type="date" name="joining_date" required></div>
 {% endblock %}
