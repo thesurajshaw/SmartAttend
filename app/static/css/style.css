@@ -625,6 +625,23 @@ a:hover {
 .section-card      { flex: 1; min-width: 300px; }
 .section-card-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
 
+/* Two inputs sharing one row, e.g. start time and end time. */
+.field-pair { display: flex; gap: 10px; }
+
+/* The P / A / L / E radio buttons in the marking grid. A locked session
+   shows the "not allowed" cursor on all four at once. */
+.mark-options { display: flex; gap: 8px; }
+.mark-options label { cursor: pointer; }
+.mark-options.is-locked label { cursor: not-allowed; }
+
+/* An input filling the width of its cell. */
+.input-full {
+    width: 100%;
+    padding: 4px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
 /* A row of buttons sitting side by side. */
 .btn-row       { display: flex; gap: 8px; }
 .btn-row-tight { display: flex; gap: 4px; }
@@ -667,14 +684,12 @@ a:hover {
 
 .semibold  { font-weight: 600; }
 .muted     { color: var(--text-secondary); }
-.muted-sm  { color: var(--text-secondary); font-size: 0.9rem; }
 .nowrap    { white-space: nowrap; }
 .form-inline { display: inline; }
 
 .mt-4  { margin-top: 4px; }
 .mt-8  { margin-top: 8px; }
 .mb-8  { margin-bottom: 8px; }
-.mb-12 { margin-bottom: 12px; }
 .mb-16 { margin-bottom: 16px; }
 .mb-24 { margin-bottom: 24px; }
 

@@ -1,70 +1,63 @@
-{% extends "base.html" %}
+{% extends "_crud_page.html" %}
 {% from "_ui.html" import status_chip %}
 {% block title %}Sessions — {{ section.subject.code }} {% endblock %}
 {% block breadcrumb %}
     <a href="{{ url_for('faculty.dashboard') }}">Dashboard</a> / <span>{{ section.subject.code }} (Sec {{ section.section }}) Sessions</span>
 {% endblock %}
 
-{% block content %}
-<div style="display: flex; gap: 24px; flex-wrap: wrap;">
-    <!-- Session List -->
-    <div class="card" style="flex: 2; min-width: 300px;">
-        <h3>📅 Attendance Sessions</h3>
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Time</th>
-                    <th>Topic</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for s in sessions %}
-                <tr>
-                    <td>{{ s.session_date.strftime('%d %b %Y') }}</td>
-                    <td>{{ s.start_time.strftime('%H:%M') }} - {{ s.end_time.strftime('%H:%M') }}</td>
-                    <td>{{ s.topic or '-' }}</td>
-                    <td>{{ status_chip(s.status) }}</td>
-                    <td>
-                        <a href="{{ url_for('faculty.marking_grid', session_id=s.id) }}" class="btn btn-sm btn-primary">
-                            {% if s.status == 'open' %}Mark / Edit{% else %}View{% endif %}
-                        </a>
-                    </td>
-                </tr>
-                {% else %}
-                <tr><td colspan="5">No sessions recorded yet.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+{% block list_title %}📅 Attendance Sessions{% endblock %}
+{% block list_table %}
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Topic</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for s in sessions %}
+        <tr>
+            <td>{{ s.session_date.strftime('%d %b %Y') }}</td>
+            <td>{{ s.start_time.strftime('%H:%M') }} - {{ s.end_time.strftime('%H:%M') }}</td>
+            <td>{{ s.topic or '-' }}</td>
+            <td>{{ status_chip(s.status) }}</td>
+            <td>
+                {# An open session can still be edited; a locked one is read-only. #}
+                <a href="{{ url_for('faculty.marking_grid', session_id=s.id) }}" class="btn btn-sm btn-primary">
+                    {% if s.status == 'open' %}Mark / Edit{% else %}View{% endif %}
+                </a>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5">No sessions recorded yet.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
 
-    <!-- Create Session -->
-    <div class="card" style="flex: 1; min-width: 250px;">
-        <h3>Create New Session</h3>
-        <form method="POST" action="{{ url_for('faculty.section_sessions', section_id=section.id) }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <div class="form-group">
-                <label>Date</label>
-                <input type="date" name="session_date" required value="{{ current_date }}">
-            </div>
-            <div class="form-group" style="display: flex; gap: 10px;">
-                <div style="flex: 1;">
-                    <label>Start Time</label>
-                    <input type="time" name="start_time" required>
-                </div>
-                <div style="flex: 1;">
-                    <label>End Time</label>
-                    <input type="time" name="end_time" required>
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Topic Covered (Optional)</label>
-                <input type="text" name="topic" placeholder="e.g. Trees and Graphs">
-            </div>
-            <button type="submit" class="btn btn-primary btn-block">Create & Mark</button>
-        </form>
+{% block form_title %}Create New Session{% endblock %}
+{% block form_action %}{{ url_for('faculty.section_sessions', section_id=section.id) }}{% endblock %}
+{% block submit_label %}Create &amp; Mark{% endblock %}
+{% block form_fields %}
+<div class="form-group">
+    <label>Date</label>
+    <input type="date" name="session_date" required value="{{ current_date }}">
+</div>
+<div class="form-group field-pair">
+    <div class="btn-grow">
+        <label>Start Time</label>
+        <input type="time" name="start_time" required>
     </div>
+    <div class="btn-grow">
+        <label>End Time</label>
+        <input type="time" name="end_time" required>
+    </div>
+</div>
+<div class="form-group">
+    <label>Topic Covered (Optional)</label>
+    <input type="text" name="topic" placeholder="e.g. Trees and Graphs">
 </div>
 {% endblock %}

@@ -1,6 +1,15 @@
 {% extends "base.html" %}
 {% from "_ui.html" import status_chip %}
 {% block title %}Mark Attendance — SmartAttend{% endblock %}
+
+{# The four marks a teacher can give, as (value, letter, colour class).
+   Listing them once keeps the four radio buttons in step with each other. #}
+{% set MARK_OPTIONS = [
+    ('present', 'P', ''),
+    ('absent',  'A', 'text-critical'),
+    ('late',    'L', 'text-warning'),
+    ('excused', 'E', 'muted'),
+] %}
 {% block breadcrumb %}
     <a href="{{ url_for('faculty.dashboard') }}">Dashboard</a> / 
     <a href="{{ url_for('faculty.section_sessions', section_id=session.class_section_id) }}">{{ session.class_section.subject.code }}</a> / 
@@ -43,25 +52,20 @@
                             <td><strong>{{ s.roll_no }}</strong></td>
                             <td>{{ s.user.full_name }}</td>
                             <td>
-                                <div style="display: flex; gap: 8px;">
-                                    <label style="cursor: {% if is_locked %}not-allowed{% else %}pointer{% endif %};">
-                                        <input type="radio" name="status_{{ s.id }}" value="present" {% if status == 'present' %}checked{% endif %} {% if is_locked %}disabled{% endif %}> P
+                                <div class="mark-options{% if is_locked %} is-locked{% endif %}">
+                                    {% for value, letter, colour in MARK_OPTIONS %}
+                                    <label class="{{ colour }}">
+                                        <input type="radio" name="status_{{ s.id }}" value="{{ value }}"
+                                               {% if status == value %}checked{% endif %}
+                                               {% if is_locked %}disabled{% endif %}> {{ letter }}
                                     </label>
-                                    <label style="cursor: {% if is_locked %}not-allowed{% else %}pointer{% endif %}; color: var(--red);">
-                                        <input type="radio" name="status_{{ s.id }}" value="absent" {% if status == 'absent' %}checked{% endif %} {% if is_locked %}disabled{% endif %}> A
-                                    </label>
-                                    <label style="cursor: {% if is_locked %}not-allowed{% else %}pointer{% endif %}; color: var(--amber);">
-                                        <input type="radio" name="status_{{ s.id }}" value="late" {% if status == 'late' %}checked{% endif %} {% if is_locked %}disabled{% endif %}> L
-                                    </label>
-                                    <label style="cursor: {% if is_locked %}not-allowed{% else %}pointer{% endif %}; color: var(--text-secondary);">
-                                        <input type="radio" name="status_{{ s.id }}" value="excused" {% if status == 'excused' %}checked{% endif %} {% if is_locked %}disabled{% endif %}> E
-                                    </label>
+                                    {% endfor %}
                                 </div>
                             </td>
                             <td>
                                 <input type="text" name="remarks_{{ s.id }}" value="{{ record.remarks or '' }}" 
                                        placeholder="Optional note" 
-                                       style="width: 100%; padding: 4px; border: 1px solid var(--border-color); border-radius: 4px;"
+                                       class="input-full"
                                        {% if is_locked %}disabled{% endif %}>
                             </td>
                             {% if is_locked %}
