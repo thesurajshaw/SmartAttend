@@ -1,56 +1,43 @@
-{% extends "base.html" %}
+{% extends "_crud_page.html" %}
+{% from "_ui.html" import delete_button with context %}
 {% block title %}Departments — SmartAttend{% endblock %}
 {% block breadcrumb %}
     <a href="{{ url_for('admin.dashboard') }}">Dashboard</a> / <span>Departments</span>
 {% endblock %}
 
-{% block content %}
-<div style="display: flex; gap: 24px; flex-wrap: wrap;">
-    <!-- List -->
-    <div class="card" style="flex: 2; min-width: 300px;">
-        <h3>🏛️ Departments</h3>
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Code</th>
-                    <th>Name</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for d in departments %}
-                <tr>
-                    <td><strong>{{ d.code }}</strong></td>
-                    <td>{{ d.name }}</td>
-                    <td>
-                        <form action="{{ url_for('admin.delete_department', id=d.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure?');">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                        </form>
-                    </td>
-                </tr>
-                {% else %}
-                <tr><td colspan="3">No departments found.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+{% block list_title %}🏛️ Departments{% endblock %}
+{% block list_table %}
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Code</th>
+            <th>Name</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for d in departments %}
+        <tr>
+            <td><strong>{{ d.code }}</strong></td>
+            <td>{{ d.name }}</td>
+            <td>{{ delete_button(url_for('admin.delete_department', id=d.id)) }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="3">No departments found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
 
-    <!-- Add Form -->
-    <div class="card" style="flex: 1; min-width: 250px;">
-        <h3>Add Department</h3>
-        <form method="POST" action="{{ url_for('admin.departments') }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <div class="form-group">
-                <label>Code</label>
-                <input type="text" name="code" required placeholder="e.g. CSE">
-            </div>
-            <div class="form-group">
-                <label>Name</label>
-                <input type="text" name="name" required placeholder="Computer Science">
-            </div>
-            <button type="submit" class="btn btn-primary btn-block">Add</button>
-        </form>
-    </div>
+{% block form_title %}Add Department{% endblock %}
+{% block form_action %}{{ url_for('admin.departments') }}{% endblock %}
+{% block form_fields %}
+<div class="form-group">
+    <label>Code</label>
+    <input type="text" name="code" required placeholder="e.g. CSE">
+</div>
+<div class="form-group">
+    <label>Name</label>
+    <input type="text" name="name" required placeholder="Computer Science">
 </div>
 {% endblock %}

@@ -100,12 +100,22 @@ def seed_data():
         print("Seeding 8 Weeks of Attendance...")
         start_date = date.today() - timedelta(weeks=8)
 
-        # 3 sessions per week for 8 weeks = 24 sessions per class section
-        # Student profiles for interesting test data:
-        #   students[0] -> Safe (100% present)
-        #   students[1] -> Warning (~76%)
-        #   students[2] -> Critical (~63%)
-        #   students[3] -> Declining trend (starts high, drops each 2-week block)
+        # 3 sessions per week for 8 weeks = 24 sessions per class section.
+        #
+        # The first four students are hand-made so every zone and every alert
+        # can be demonstrated. Weekly figures are shown because the declining
+        # -trend rule reads them, and with 3 sessions a week the only possible
+        # weekly values are 0%, 33%, 67% and 100%.
+        #
+        #   students[0]  24/24 = 100%    Safe
+        #   students[1]  18/24 = 75%     Warning  (exactly on the pass mark)
+        #   students[2]  15/24 = 62.5%   Critical
+        #   students[3]  18/24 = 75%     Warning + declining trend
+        #                weekly: 100 100 100 100 100 67 33 0
+        #                The last four weeks fall every week, which is what
+        #                detect_declining_trend looks for. A run that merely
+        #                trends downwards is not enough: the rule needs each
+        #                week strictly below the one before.
 
         for week in range(8):
             for day_offset in [0, 2, 4]:  # Mon, Wed, Fri
@@ -126,24 +136,25 @@ def seed_data():
 
                 for s in students[:25]:
                     if s.id == students[0].id:
-                        # Safe: always present
+                        # Always present.
                         status = 'present'
                     elif s.id == students[1].id:
-                        # Warning: ~76% -> 18/24 present, absent in weeks 6-7
+                        # Present for the first 6 weeks, then away: 18/24.
                         status = 'present' if week < 6 else 'absent'
                     elif s.id == students[2].id:
-                        # Critical: ~63% -> 15/24 present, absent in weeks 5-7
+                        # Present for the first 5 weeks, then away: 15/24.
                         status = 'present' if week < 5 else 'absent'
                     elif s.id == students[3].id:
-                        # Declining: W1-2 all present, W3-4 miss Fri, W5-6 miss Wed+Fri, W7-8 all absent
-                        if week < 2:
-                            status = 'present'
-                        elif week < 4:
-                            status = 'present' if day_offset != 4 else 'absent'
-                        elif week < 6:
-                            status = 'present' if day_offset == 0 else 'absent'
+                        # Slides one session further each of the last three
+                        # weeks, giving 100, 67, 33, 0 over the final four.
+                        if week < 5:
+                            status = 'present'                              # 100%
+                        elif week == 5:
+                            status = 'absent' if day_offset == 4 else 'present'   # 67%
+                        elif week == 6:
+                            status = 'present' if day_offset == 0 else 'absent'   # 33%
                         else:
-                            status = 'absent'
+                            status = 'absent'                               # 0%
                     else:
                         status = random.choices(
                             ['present', 'absent', 'late', 'excused'],

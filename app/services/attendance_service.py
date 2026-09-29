@@ -1,116 +1,124 @@
-from datetime import timedelta
+"""
+Reads attendance out of the database and turns it into the numbers the
+pages display. The arithmetic itself lives in prediction_service.py.
+"""
+
 from app.extensions import db
-from app.models import AttendanceRecord, AttendanceSession, Enrollment, ClassSection
+from app.models import AttendanceRecord, AttendanceSession
+from app.services import prediction_service as predict
+
+# How each mark affects the two running totals:
+#   attended -- the numerator, classes the student was there for
+#   conducted -- the denominator, classes that count against them
+# An excused absence appears in neither, so it never hurts the percentage.
+COUNTS_AS = {
+    'present': (1, 1),
+    'late': (1, 1),
+    'absent': (0, 1),
+    'excused': (0, 0),
+}
 
 
-def get_attendance_metrics(records):
+def get_attendance_metrics(statuses):
+    """Adds up a list of marks into (attended, conducted)."""
+    attended = 0
+    conducted = 0
+    for status in statuses:
+        a, c = COUNTS_AS.get(status, (0, 0))
+        attended += a
+        conducted += c
+    return attended, conducted
+
+
+def _session_records(student_id, class_section_id):
     """
-    Computes A (attended) and C (conducted) from a list of record statuses.
-    Rule:
-    - present, late -> count toward numerator and denominator (+1 A, +1 C)
-    - absent -> count toward denominator only (+0 A, +1 C)
-    - excused -> excluded entirely (+0 A, +0 C)
+    Base query: one row per attendance record for this student in this
+    class section, oldest first. Cancelled sessions never count.
     """
-    A = 0
-    C = 0
-    for status in records:
-        if status in ('present', 'late'):
-            A += 1
-            C += 1
-        elif status == 'absent':
-            C += 1
-
-    return A, C
-
-
-def get_student_statuses(student_id, class_section_id):
-    """
-    Queries the DB for all attendance record statuses for a student
-    in a given class section. Returns a plain list of status strings
-    that can be fed directly to get_attendance_metrics().
-    """
-    rows = (
-        db.session.query(AttendanceRecord.status)
-        .join(AttendanceSession, AttendanceRecord.session_id == AttendanceSession.id)
-        .filter(
-            AttendanceRecord.student_id == student_id,
-            AttendanceSession.class_section_id == class_section_id,
-            AttendanceSession.status != 'cancelled'
-        )
-        .order_by(AttendanceSession.session_date)
-        .all()
-    )
-    return [r.status for r in rows]
-
-
-def get_weekly_percentages(student_id, class_section_id):
-    """
-    Computes weekly attendance percentages for trend detection.
-    Returns a list of floats, one per week, ordered chronologically.
-    Weeks with no non-excused records are omitted.
-    """
-    rows = (
-        db.session.query(AttendanceSession.session_date, AttendanceRecord.status)
-        .join(AttendanceRecord, AttendanceRecord.session_id == AttendanceSession.id)
-        .filter(
-            AttendanceRecord.student_id == student_id,
-            AttendanceSession.class_section_id == class_section_id,
-            AttendanceSession.status != 'cancelled'
-        )
-        .order_by(AttendanceSession.session_date)
-        .all()
-    )
-
-    if not rows:
-        return []
-
-    # Group by ISO week
-    weeks = {}
-    for session_date, status in rows:
-        # isocalendar returns (year, week_number, weekday)
-        year, week_num, _ = session_date.isocalendar()
-        key = (year, week_num)
-        if key not in weeks:
-            weeks[key] = []
-        weeks[key].append(status)
-
-    # Compute percentage per week, skip weeks with only excused records
-    percentages = []
-    for key in sorted(weeks.keys()):
-        statuses = weeks[key]
-        A, C = get_attendance_metrics(statuses)
-        if C > 0:
-            percentages.append(A / C)
-
-    return percentages
-
-
-def get_student_history(student_id, class_section_id):
-    """
-    Returns a list of dicts with session details and this student's record
-    for the attendance history view. Ordered by date descending.
-    """
-    rows = (
+    return (
         db.session.query(AttendanceSession, AttendanceRecord)
         .join(AttendanceRecord, AttendanceRecord.session_id == AttendanceSession.id)
         .filter(
             AttendanceRecord.student_id == student_id,
             AttendanceSession.class_section_id == class_section_id,
-            AttendanceSession.status != 'cancelled'
+            AttendanceSession.status != 'cancelled',
         )
-        .order_by(AttendanceSession.session_date.desc())
-        .all()
+        .order_by(AttendanceSession.session_date)
     )
 
-    history = []
-    for session, record in rows:
-        history.append({
+
+def get_student_statuses(student_id, class_section_id):
+    """Just the marks ('present', 'absent', ...), ready for get_attendance_metrics."""
+    return [record.status for _, record in _session_records(student_id, class_section_id).all()]
+
+
+def get_weekly_percentages(student_id, class_section_id):
+    """
+    One percentage per calendar week, oldest first, for trend detection.
+    Weeks containing only excused absences are skipped (nothing to measure).
+    """
+    weeks = {}
+    for session, record in _session_records(student_id, class_section_id).all():
+        year, week_number, _ = session.session_date.isocalendar()
+        weeks.setdefault((year, week_number), []).append(record.status)
+
+    percentages = []
+    for week in sorted(weeks):
+        attended, conducted = get_attendance_metrics(weeks[week])
+        if conducted > 0:
+            percentages.append(attended / conducted)
+    return percentages
+
+
+def get_student_history(student_id, class_section_id):
+    """Day-by-day rows for the history tables, newest first."""
+    rows = _session_records(student_id, class_section_id).all()
+    return [
+        {
             'date': session.session_date,
             'start_time': session.start_time,
             'end_time': session.end_time,
             'topic': session.topic,
             'status': record.status,
             'remarks': record.remarks,
-        })
+        }
+        for session, record in reversed(rows)
+    ]
 
-    return history
+
+def get_subject_summary(student_id, class_section_id, required, warning_band):
+    """
+    Everything one student's card, table row, or CSV line needs for one
+    subject. This is the single place those numbers are worked out, so the
+    dashboard, the analytics pages and the exports can never disagree.
+    """
+    attended, conducted = get_attendance_metrics(
+        get_student_statuses(student_id, class_section_id)
+    )
+    status = predict.get_status(attended, conducted, required, warning_band)
+    needed = predict.get_classes_needed(attended, conducted, required)
+    can_miss = predict.get_classes_can_miss(attended, conducted, required)
+    weekly = get_weekly_percentages(student_id, class_section_id)
+
+    return {
+        'attended': attended,
+        'conducted': conducted,
+        'percentage': predict.percentage(attended, conducted),
+        'status': status,
+        'needed': needed,
+        # The same number ready to print. get_classes_needed returns the word
+        # 'impossible' when the target cannot be reached; turning that into a
+        # symbol here keeps the check out of three separate templates. CSV
+        # exports use 'needed' above, so the word survives in the file.
+        'needed_display': '∞' if needed == 'impossible' else needed,
+        'can_miss': can_miss,
+        'weekly_pcts': weekly,
+        # Each week with its colour already decided, for the trend table.
+        'weekly_rows': [
+            {'pct': p * 100,
+             'status': predict.status_for_fraction(p, required, warning_band)}
+            for p in weekly
+        ],
+        'declining': predict.detect_declining_trend(weekly),
+        'guidance': predict.guidance_message(status, needed, can_miss, required),
+    }

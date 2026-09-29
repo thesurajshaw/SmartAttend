@@ -16,24 +16,32 @@
                 <small>{{ current_user.role | capitalize }} Panel</small>
             </div>
             <div class="sidebar-nav">
+                {#
+                  request.endpoint names the view handling this page, e.g.
+                  "admin.departments". On a URL that matches no route it is
+                  None, so fall back to an empty string before testing against
+                  it -- otherwise rendering the 404 page raises TypeError and
+                  the error page itself becomes a 500.
+                #}
+                {% set endpoint = request.endpoint or '' %}
                 {% if current_user.role == 'admin' %}
-                    <a href="{{ url_for('admin.dashboard') }}" class="{% if request.endpoint == 'admin.dashboard' %}active{% endif %}">📊 Dashboard</a>
-                    <a href="{{ url_for('admin.analytics') }}" class="{% if request.endpoint == 'admin.analytics' %}active{% endif %}">📈 Analytics</a>
-                    <a href="{{ url_for('admin.corrections') }}" class="{% if request.endpoint == 'admin.corrections' %}active{% endif %}">📝 Corrections</a>
-                    <a href="{{ url_for('admin.audit_logs') }}" class="{% if request.endpoint == 'admin.audit_logs' %}active{% endif %}">🛡️ Audit Logs</a>
-                    <a href="{{ url_for('admin.departments') }}" class="{% if 'department' in request.endpoint %}active{% endif %}">🏛️ Departments</a>
-                    <a href="{{ url_for('admin.subjects') }}" class="{% if 'subject' in request.endpoint %}active{% endif %}">📚 Subjects</a>
-                    <a href="{{ url_for('admin.faculty_list') }}" class="{% if 'faculty' in request.endpoint %}active{% endif %}">👨‍🏫 Faculty</a>
-                    <a href="{{ url_for('admin.students') }}" class="{% if 'student' in request.endpoint %}active{% endif %}">🎓 Students</a>
-                    <a href="{{ url_for('admin.class_sections') }}" class="{% if 'class_section' in request.endpoint %}active{% endif %}">📖 Class Sections</a>
-                    <a href="{{ url_for('admin.settings') }}" class="{% if 'settings' in request.endpoint %}active{% endif %}">⚙️ Settings</a>
+                    <a href="{{ url_for('admin.dashboard') }}" class="{% if endpoint == 'admin.dashboard' %}active{% endif %}">📊 Dashboard</a>
+                    <a href="{{ url_for('admin.analytics') }}" class="{% if endpoint == 'admin.analytics' %}active{% endif %}">📈 Analytics</a>
+                    <a href="{{ url_for('admin.corrections') }}" class="{% if endpoint == 'admin.corrections' %}active{% endif %}">📝 Corrections</a>
+                    <a href="{{ url_for('admin.audit_logs') }}" class="{% if endpoint == 'admin.audit_logs' %}active{% endif %}">🛡️ Audit Logs</a>
+                    <a href="{{ url_for('admin.departments') }}" class="{% if 'department' in endpoint %}active{% endif %}">🏛️ Departments</a>
+                    <a href="{{ url_for('admin.subjects') }}" class="{% if 'subject' in endpoint %}active{% endif %}">📚 Subjects</a>
+                    <a href="{{ url_for('admin.faculty_list') }}" class="{% if 'faculty' in endpoint %}active{% endif %}">👨‍🏫 Faculty</a>
+                    <a href="{{ url_for('admin.students') }}" class="{% if 'student' in endpoint %}active{% endif %}">🎓 Students</a>
+                    <a href="{{ url_for('admin.class_sections') }}" class="{% if 'class_section' in endpoint %}active{% endif %}">📖 Class Sections</a>
+                    <a href="{{ url_for('admin.settings') }}" class="{% if 'settings' in endpoint %}active{% endif %}">⚙️ Settings</a>
                 {% elif current_user.role == 'faculty' %}
-                    <a href="{{ url_for('faculty.dashboard') }}" class="{% if request.endpoint == 'faculty.dashboard' %}active{% endif %}">📊 Dashboard</a>
-                    <a href="{{ url_for('faculty.my_sections') }}" class="{% if 'section' in request.endpoint %}active{% endif %}">📖 My Sections</a>
+                    <a href="{{ url_for('faculty.dashboard') }}" class="{% if endpoint == 'faculty.dashboard' %}active{% endif %}">📊 Dashboard</a>
+                    <a href="{{ url_for('faculty.my_sections') }}" class="{% if 'section' in endpoint %}active{% endif %}">📖 My Sections</a>
                 {% elif current_user.role == 'student' %}
-                    <a href="{{ url_for('student.dashboard') }}" class="{% if request.endpoint == 'student.dashboard' %}active{% endif %}">📊 Dashboard</a>
-                    <a href="{{ url_for('student.notifications') }}" class="{% if request.endpoint == 'student.notifications' %}active{% endif %}">🔔 Notifications</a>
-                    <a href="{{ url_for('student.history') }}" class="{% if 'history' in request.endpoint %}active{% endif %}">📅 History</a>
+                    <a href="{{ url_for('student.dashboard') }}" class="{% if endpoint == 'student.dashboard' %}active{% endif %}">📊 Dashboard</a>
+                    <a href="{{ url_for('student.notifications') }}" class="{% if endpoint == 'student.notifications' %}active{% endif %}">🔔 Notifications</a>
+                    <a href="{{ url_for('student.history') }}" class="{% if 'history' in endpoint %}active{% endif %}">📅 History</a>
                     <a href="{{ url_for('student.export_csv') }}">📥 Export Report</a>
                 {% endif %}
             </div>
@@ -69,18 +77,7 @@
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 
-    <!-- Render server-side flash messages as toasts -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    {% for category, message in messages %}
-                        showToast("{{ message }}", "{{ category }}");
-                    {% endfor %}
-                });
-            </script>
-        {% endif %}
-    {% endwith %}
+    {% include "_flash_toasts.html" %}
 
     {% block extra_js %}{% endblock %}
 </body>

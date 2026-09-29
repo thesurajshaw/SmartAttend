@@ -1,40 +1,41 @@
 {% extends "base.html" %}
+{% from "_ui.html" import status_chip %}
 {% block title %}System Analytics — SmartAttend{% endblock %}
 {% block breadcrumb %}
     <a href="{{ url_for('admin.dashboard') }}">Dashboard</a> / <span>Analytics</span>
 {% endblock %}
 
 {% block content %}
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+<div class="split-row mb-24">
     <h2>📊 System-wide Analytics</h2>
     <a href="{{ url_for('admin.export_csv') }}" class="btn btn-primary btn-sm">📥 Export Full Report (CSV)</a>
 </div>
 
-<!-- Overall Status -->
-<div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px;">
-    <div class="card" style="flex: 1; min-width: 150px; text-align: center;">
-        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">Safe</div>
-        <div style="font-size: 2.5rem; font-weight: bold; color: var(--green);">{{ overall.Safe }}</div>
+<!-- How the whole institution is doing -->
+<div class="stat-row mb-24">
+    <div class="card stat-card">
+        <div class="stat-label">Safe</div>
+        <div class="stat-value stat-value-lg text-safe">{{ overall.Safe }}</div>
     </div>
-    <div class="card" style="flex: 1; min-width: 150px; text-align: center;">
-        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">Warning</div>
-        <div style="font-size: 2.5rem; font-weight: bold; color: var(--amber);">{{ overall.Warning }}</div>
+    <div class="card stat-card">
+        <div class="stat-label">Warning</div>
+        <div class="stat-value stat-value-lg text-warning">{{ overall.Warning }}</div>
     </div>
-    <div class="card" style="flex: 1; min-width: 150px; text-align: center;">
-        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">Critical</div>
-        <div style="font-size: 2.5rem; font-weight: bold; color: var(--red);">{{ overall.Critical }}</div>
+    <div class="card stat-card">
+        <div class="stat-label">Critical</div>
+        <div class="stat-value stat-value-lg text-critical">{{ overall.Critical }}</div>
     </div>
-    <div class="card" style="flex: 1; min-width: 150px; text-align: center;">
-        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">Total Enrollments</div>
-        <div style="font-size: 2.5rem; font-weight: bold; color: var(--accent);">{{ overall.Safe + overall.Warning + overall.Critical }}</div>
+    <div class="card stat-card">
+        <div class="stat-label">Total Enrollments</div>
+        <div class="stat-value stat-value-lg text-accent">{{ total_enrollments }}</div>
     </div>
 </div>
 
-<!-- Section-wise breakdown -->
-<div class="card" style="margin-bottom: 24px;">
+<!-- One row per class section -->
+<div class="card mb-24">
     <h3>Section-wise Attendance Summary</h3>
-    <div style="overflow-x: auto;">
-        <table class="data-table" style="margin-top: 8px;">
+    <div class="table-scroll">
+        <table class="data-table mt-8">
             <thead>
                 <tr>
                     <th>Subject</th>
@@ -54,15 +55,15 @@
                     <td>{{ s.section }}</td>
                     <td>{{ s.faculty_name }}</td>
                     <td>{{ s.total }}</td>
-                    <td style="color: var(--green); font-weight: 600;">{{ s.safe }}</td>
-                    <td style="color: var(--amber); font-weight: 600;">{{ s.warning }}</td>
-                    <td style="color: var(--red); font-weight: 600;">{{ s.critical }}</td>
+                    <td class="text-safe semibold">{{ s.safe }}</td>
+                    <td class="text-warning semibold">{{ s.warning }}</td>
+                    <td class="text-critical semibold">{{ s.critical }}</td>
                     <td style="width: 200px;">
                         {% if s.total > 0 %}
-                        <div style="display: flex; height: 16px; border-radius: 4px; overflow: hidden;">
-                            {% if s.safe > 0 %}<div style="width: {{ s.safe / s.total * 100 }}%; background: var(--green);" title="Safe"></div>{% endif %}
-                            {% if s.warning > 0 %}<div style="width: {{ s.warning / s.total * 100 }}%; background: var(--amber);" title="Warning"></div>{% endif %}
-                            {% if s.critical > 0 %}<div style="width: {{ s.critical / s.total * 100 }}%; background: var(--red);" title="Critical"></div>{% endif %}
+                        <div class="dist-bar">
+                            {% if s.safe > 0 %}<div class="fill-safe" style="width: {{ s.safe_pct }}%;" title="Safe"></div>{% endif %}
+                            {% if s.warning > 0 %}<div class="fill-warning" style="width: {{ s.warning_pct }}%;" title="Warning"></div>{% endif %}
+                            {% if s.critical > 0 %}<div class="fill-critical" style="width: {{ s.critical_pct }}%;" title="Critical"></div>{% endif %}
                         </div>
                         {% endif %}
                     </td>
@@ -73,12 +74,12 @@
     </div>
 </div>
 
-<!-- At-risk Students -->
+<!-- Everyone in the Warning or Critical zone, worst first -->
 {% if at_risk %}
 <div class="card">
     <h3>⚠️ At-Risk Students (Warning + Critical)</h3>
-    <div style="overflow-x: auto;">
-        <table class="data-table" style="margin-top: 8px;">
+    <div class="table-scroll">
+        <table class="data-table mt-8">
             <thead>
                 <tr>
                     <th>Roll No</th>
@@ -96,8 +97,8 @@
                     <td>{{ s.name }}</td>
                     <td>{{ s.subject_code }}</td>
                     <td>{{ "%.1f"|format(s.percentage) }}%</td>
-                    <td><span class="status-chip status-{{ s.status|lower }}">{{ s.status }}</span></td>
-                    <td>{{ s.needed if s.needed != 'impossible' else '∞' }}</td>
+                    <td>{{ status_chip(s.status) }}</td>
+                    <td>{{ s.needed_display }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -106,7 +107,7 @@
 </div>
 {% else %}
 <div class="card">
-    <p style="color: var(--green);">✅ No at-risk students found. All students are meeting the attendance threshold.</p>
+    <p class="text-safe">✅ No at-risk students found. All students are meeting the attendance threshold.</p>
 </div>
 {% endif %}
 {% endblock %}

@@ -1,103 +1,94 @@
 {% extends "base.html" %}
+{% from "_ui.html" import status_chip %}
 {% block title %}{{ cs.subject.code }} — SmartAttend{% endblock %}
 {% block breadcrumb %}
     <a href="{{ url_for('student.dashboard') }}">Dashboard</a> / <span>{{ cs.subject.code }}</span>
 {% endblock %}
 
 {% block content %}
-<!-- Header Card -->
-<div class="card" style="margin-bottom: 24px;">
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+<div class="card mb-24">
+    <div class="split-row-top">
         <div>
-            <h2 style="margin: 0;">{{ cs.subject.code }} — {{ cs.subject.name }}</h2>
-            <p style="color: var(--text-secondary); margin-top: 4px;">
+            <h2 class="m-0">{{ cs.subject.code }} — {{ cs.subject.name }}</h2>
+            <p class="muted mt-4">
                 Faculty: {{ cs.faculty.user.full_name }} • Section {{ cs.section }} • {{ cs.academic_year }}
             </p>
         </div>
-        <span class="status-chip status-{{ status|lower }}" style="font-size: 1rem; padding: 8px 20px;">{{ status }}</span>
+        {{ status_chip(summary.status, 'lg') }}
     </div>
 </div>
 
-<div style="display: flex; gap: 24px; flex-wrap: wrap;">
-    <!-- Left Column -->
-    <div style="flex: 2; min-width: 300px; display: flex; flex-direction: column; gap: 24px;">
+<div class="page-columns">
+    <div class="detail-main">
 
-        <!-- Metrics Row -->
-        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
-            <div class="card" style="flex: 1; min-width: 120px; text-align: center;">
-                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">Attended</div>
-                <div style="font-size: 2rem; font-weight: bold; color: var(--accent);">{{ A }}</div>
+        <!-- The five headline numbers -->
+        <div class="stat-row">
+            <div class="card stat-card stat-card-narrow">
+                <div class="stat-label">Attended</div>
+                <div class="stat-value text-accent">{{ summary.attended }}</div>
             </div>
-            <div class="card" style="flex: 1; min-width: 120px; text-align: center;">
-                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">Conducted</div>
-                <div style="font-size: 2rem; font-weight: bold; color: var(--accent);">{{ C }}</div>
+            <div class="card stat-card stat-card-narrow">
+                <div class="stat-label">Conducted</div>
+                <div class="stat-value text-accent">{{ summary.conducted }}</div>
             </div>
-            <div class="card" style="flex: 1; min-width: 120px; text-align: center;">
-                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">Percentage</div>
-                <div style="font-size: 2rem; font-weight: bold;">{{ "%.1f"|format(percentage) }}%</div>
+            <div class="card stat-card stat-card-narrow">
+                <div class="stat-label">Percentage</div>
+                <div class="stat-value">{{ "%.1f"|format(summary.percentage) }}%</div>
             </div>
-            <div class="card" style="flex: 1; min-width: 120px; text-align: center;">
-                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">Need to Attend</div>
-                <div style="font-size: 2rem; font-weight: bold; color: {% if needed and needed != 0 %}var(--red){% else %}var(--green){% endif %};">
-                    {{ needed if needed != 'impossible' else '∞' }}
+            <div class="card stat-card stat-card-narrow">
+                <div class="stat-label">Need to Attend</div>
+                {# 0 classes needed is good news, anything else is not. #}
+                <div class="stat-value {{ 'text-critical' if summary.needed else 'text-safe' }}">
+                    {{ summary.needed_display }}
                 </div>
             </div>
-            <div class="card" style="flex: 1; min-width: 120px; text-align: center;">
-                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">Can Miss</div>
-                <div style="font-size: 2rem; font-weight: bold; color: {% if can_miss > 0 %}var(--green){% else %}var(--amber){% endif %};">{{ can_miss }}</div>
+            <div class="card stat-card stat-card-narrow">
+                <div class="stat-label">Can Miss</div>
+                <div class="stat-value {{ 'text-safe' if summary.can_miss > 0 else 'text-warning' }}">{{ summary.can_miss }}</div>
             </div>
         </div>
 
-        <!-- Progress Bar -->
+        <!-- Where they stand against the pass mark -->
         <div class="card">
             <h3>Attendance Progress</h3>
-            <div style="margin-top: 8px;">
-                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px;">
-                    <span>{{ A }}/{{ C }} classes attended</span>
+            <div class="mt-8">
+                <div class="bar-caption">
+                    <span>{{ summary.attended }}/{{ summary.conducted }} classes attended</span>
                     <span>Required: {{ required_pct|int }}%</span>
                 </div>
-                <div class="progress-bar-track" style="height: 16px; position: relative;">
-                    {% if percentage >= (required_pct + 5) %}
-                        {% set bar_color = 'var(--green)' %}
-                    {% elif percentage >= required_pct %}
-                        {% set bar_color = 'var(--amber)' %}
-                    {% else %}
-                        {% set bar_color = 'var(--red)' %}
-                    {% endif %}
-                    <div class="progress-bar-fill" style="width: {{ [percentage, 100]|min }}%; background: {{ bar_color }}; height: 100%;"></div>
-                    <!-- Required threshold marker -->
-                    <div style="position: absolute; left: {{ required_pct }}%; top: -4px; bottom: -4px; width: 2px; background: var(--text-primary); opacity: 0.5;"></div>
+                <div class="progress-bar-track progress-bar-track-lg">
+                    <div class="progress-bar-fill fill-{{ summary.status|lower }}"
+                         style="width: {{ [summary.percentage, 100]|min }}%; height: 100%;"></div>
+                    <div class="threshold-marker" style="left: {{ required_pct }}%;"></div>
                 </div>
             </div>
         </div>
 
-        <!-- Guidance -->
-        <div class="card" style="border-left: 4px solid {% if status == 'Critical' %}var(--red){% elif status == 'Warning' %}var(--amber){% else %}var(--green){% endif %};">
+        <!-- What to do about it -->
+        <div class="card card-spine-{{ summary.status|lower }}">
             <h3>📋 Guidance</h3>
-            <p style="font-size: 0.95rem; margin-top: 8px;">{{ guidance }}</p>
-            {% if declining %}
-                <p style="color: var(--red); margin-top: 8px; font-weight: 500;">📉 Warning: Your attendance has been declining over the last 4 weeks.</p>
+            <p class="guidance-text">{{ summary.guidance }}</p>
+            {% if summary.declining %}
+                <p class="text-critical medium mt-8">📉 Warning: Your attendance has been declining over the last 4 weeks.</p>
             {% endif %}
         </div>
 
-        <!-- Weekly Trend (text-based) -->
-        {% if weekly_pcts|length > 1 %}
+        <!-- Week by week, so a slide shows up early -->
+        {% if summary.weekly_rows|length > 1 %}
         <div class="card">
             <h3>📊 Weekly Trend</h3>
-            <table class="data-table" style="margin-top: 8px;">
+            <table class="data-table mt-8">
                 <thead>
                     <tr>
-                        {% for i in range(weekly_pcts|length) %}
+                        {% for i in range(summary.weekly_rows|length) %}
                         <th>W{{ i + 1 }}</th>
                         {% endfor %}
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        {% for pct in weekly_pcts %}
-                        <td style="text-align: center; font-weight: 500; color: {% if pct >= 0.75 %}var(--green){% elif pct >= 0.70 %}var(--amber){% else %}var(--red){% endif %};">
-                            {{ "%.0f"|format(pct * 100) }}%
-                        </td>
+                        {% for week in summary.weekly_rows %}
+                        <td class="week-cell text-{{ week.status|lower }}">{{ "%.0f"|format(week.pct) }}%</td>
                         {% endfor %}
                     </tr>
                 </tbody>
@@ -105,11 +96,11 @@
         </div>
         {% endif %}
 
-        <!-- Attendance History -->
+        <!-- Every session, newest first -->
         <div class="card">
             <h3>📅 Session History</h3>
-            <div style="overflow-x: auto;">
-                <table class="data-table" style="margin-top: 8px;">
+            <div class="table-scroll">
+                <table class="data-table mt-8">
                     <thead>
                         <tr>
                             <th>Date</th>
@@ -125,18 +116,8 @@
                             <td>{{ h.date.strftime('%d %b %Y') }}</td>
                             <td>{{ h.start_time.strftime('%H:%M') }} - {{ h.end_time.strftime('%H:%M') }}</td>
                             <td>{{ h.topic or '-' }}</td>
-                            <td>
-                                {% if h.status == 'present' %}
-                                    <span class="status-chip status-safe">Present</span>
-                                {% elif h.status == 'absent' %}
-                                    <span class="status-chip status-critical">Absent</span>
-                                {% elif h.status == 'late' %}
-                                    <span class="status-chip status-warning">Late</span>
-                                {% else %}
-                                    <span class="status-chip" style="background: rgba(100,116,139,0.15); color: var(--text-secondary);">Excused</span>
-                                {% endif %}
-                            </td>
-                            <td style="font-size: 0.8rem; color: var(--text-secondary);">{{ h.remarks or '' }}</td>
+                            <td>{{ status_chip(h.status) }}</td>
+                            <td class="remarks-cell">{{ h.remarks or '' }}</td>
                         </tr>
                         {% else %}
                         <tr><td colspan="5">No attendance records yet.</td></tr>
@@ -147,11 +128,10 @@
         </div>
     </div>
 
-    <!-- Right Column: What-If Calculator -->
-    <div style="flex: 1; min-width: 280px;">
-        <div class="card" style="position: sticky; top: 80px;">
+    <div class="detail-side">
+        <div class="card sticky-card">
             <h3>🔮 What-If Calculator</h3>
-            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 16px;">
+            <p class="hint mb-16">
                 See how attending or missing future classes would affect your percentage.
             </p>
 
@@ -164,15 +144,15 @@
                 </div>
                 <div class="form-group">
                     <label>Action</label>
-                    <div style="display: flex; gap: 12px;">
-                        <label style="cursor: pointer;">
-                            <input type="radio" name="action" value="attend" 
-                                   {% if not what_if_result or what_if_result.action == 'attend' %}checked{% endif %}> 
+                    <div class="radio-row">
+                        <label class="clickable">
+                            <input type="radio" name="action" value="attend"
+                                   {% if not what_if_result or what_if_result.action == 'attend' %}checked{% endif %}>
                             Attend
                         </label>
-                        <label style="cursor: pointer;">
+                        <label class="clickable">
                             <input type="radio" name="action" value="miss"
-                                   {% if what_if_result and what_if_result.action == 'miss' %}checked{% endif %}> 
+                                   {% if what_if_result and what_if_result.action == 'miss' %}checked{% endif %}>
                             Miss
                         </label>
                     </div>
@@ -181,12 +161,12 @@
             </form>
 
             {% if what_if_result %}
-            <div style="margin-top: 20px; padding: 16px; border-radius: var(--radius); border: 1px solid var(--border-color); background: var(--bg-primary);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <strong style="font-size: 1.5rem;">{{ "%.1f"|format(what_if_result.projected) }}%</strong>
-                    <span class="status-chip status-{{ what_if_result.status|lower }}">{{ what_if_result.status }}</span>
+            <div class="whatif-result">
+                <div class="split-row mb-8">
+                    <strong class="big-number">{{ "%.1f"|format(what_if_result.projected) }}%</strong>
+                    {{ status_chip(what_if_result.status) }}
                 </div>
-                <p style="font-size: 0.85rem; color: var(--text-secondary);">{{ what_if_result.verdict }}</p>
+                <p class="hint">{{ what_if_result.verdict }}</p>
             </div>
             {% endif %}
         </div>

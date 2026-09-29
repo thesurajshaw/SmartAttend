@@ -1,0 +1,37 @@
+{#
+  The shape of every "manage X" screen: a table of the rows that already
+  exist on the left, and a form to add one more on the right.
+
+  A page built on this only has to say what goes in the table and what
+  fields the form has. Everything else -- the two cards, the CSRF token,
+  the submit button -- is here, once.
+
+      {% extends "_crud_page.html" %}
+      {% block list_title %}Departments{% endblock %}
+      {% block list_table %} ...your table... {% endblock %}
+      {% block form_title %}Add Department{% endblock %}
+      {% block form_action %}{{ url_for('admin.departments') }}{% endblock %}
+      {% block form_fields %} ...your inputs... {% endblock %}
+#}
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-columns">
+
+    <div class="card col-main table-scroll">
+        <h3>{% block list_title %}{% endblock %}</h3>
+        {% block list_table %}{% endblock %}
+        {% block list_footer %}{% endblock %}
+    </div>
+
+    <div class="card col-side">
+        <h3>{% block form_title %}{% endblock %}</h3>
+        <form method="POST" action="{% block form_action %}{% endblock %}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            {% block form_fields %}{% endblock %}
+            <button type="submit" class="btn btn-primary btn-block">{% block submit_label %}Add{% endblock %}</button>
+        </form>
+    </div>
+
+</div>
+{% endblock %}
