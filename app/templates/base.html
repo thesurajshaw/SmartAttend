@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}SmartAttend{% endblock %}</title>
+    <!-- Inter font with local fallback -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     {% block extra_css %}{% endblock %}
 </head>
@@ -11,36 +15,83 @@
     <div class="app-layout">
         <!-- Sidebar -->
         <nav class="sidebar" id="sidebar" aria-label="Main navigation">
+            <!-- Brand -->
             <div class="sidebar-header">
-                <h2>📋 SmartAttend</h2>
+                <div class="sidebar-brand">
+                    <div class="sidebar-logo-icon">SA</div>
+                    <h2>SmartAttend</h2>
+                </div>
                 <small>{{ current_user.role | capitalize }} Panel</small>
             </div>
+
+            <!-- Navigation links — ALL Jinja2 logic preserved exactly -->
             <div class="sidebar-nav">
                 {% if current_user.role == 'admin' %}
-                    <a href="{{ url_for('admin.dashboard') }}" class="{% if request.endpoint == 'admin.dashboard' %}active{% endif %}">📊 Dashboard</a>
-                    <a href="{{ url_for('admin.analytics') }}" class="{% if request.endpoint == 'admin.analytics' %}active{% endif %}">📈 Analytics</a>
-                    <a href="{{ url_for('admin.corrections') }}" class="{% if request.endpoint == 'admin.corrections' %}active{% endif %}">📝 Corrections</a>
-                    <a href="{{ url_for('admin.audit_logs') }}" class="{% if request.endpoint == 'admin.audit_logs' %}active{% endif %}">🛡️ Audit Logs</a>
-                    <a href="{{ url_for('admin.departments') }}" class="{% if 'department' in request.endpoint %}active{% endif %}">🏛️ Departments</a>
-                    <a href="{{ url_for('admin.subjects') }}" class="{% if 'subject' in request.endpoint %}active{% endif %}">📚 Subjects</a>
-                    <a href="{{ url_for('admin.faculty_list') }}" class="{% if 'faculty' in request.endpoint %}active{% endif %}">👨‍🏫 Faculty</a>
-                    <a href="{{ url_for('admin.students') }}" class="{% if 'student' in request.endpoint %}active{% endif %}">🎓 Students</a>
-                    <a href="{{ url_for('admin.class_sections') }}" class="{% if 'class_section' in request.endpoint %}active{% endif %}">📖 Class Sections</a>
-                    <a href="{{ url_for('admin.settings') }}" class="{% if 'settings' in request.endpoint %}active{% endif %}">⚙️ Settings</a>
+                    <a href="{{ url_for('admin.dashboard') }}" class="{% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+                        <span class="nav-icon">📊</span> Dashboard
+                    </a>
+                    <a href="{{ url_for('admin.analytics') }}" class="{% if request.endpoint == 'admin.analytics' %}active{% endif %}">
+                        <span class="nav-icon">📈</span> Analytics
+                    </a>
+                    <a href="{{ url_for('admin.corrections') }}" class="{% if request.endpoint == 'admin.corrections' %}active{% endif %}">
+                        <span class="nav-icon">📝</span> Corrections
+                    </a>
+                    <a href="{{ url_for('admin.audit_logs') }}" class="{% if request.endpoint == 'admin.audit_logs' %}active{% endif %}">
+                        <span class="nav-icon">🛡️</span> Audit Logs
+                    </a>
+                    <a href="{{ url_for('admin.departments') }}" class="{% if 'department' in request.endpoint %}active{% endif %}">
+                        <span class="nav-icon">🏛️</span> Departments
+                    </a>
+                    <a href="{{ url_for('admin.subjects') }}" class="{% if 'subject' in request.endpoint %}active{% endif %}">
+                        <span class="nav-icon">📚</span> Subjects
+                    </a>
+                    <a href="{{ url_for('admin.faculty_list') }}" class="{% if 'faculty' in request.endpoint %}active{% endif %}">
+                        <span class="nav-icon">👨‍🏫</span> Faculty
+                    </a>
+                    <a href="{{ url_for('admin.students') }}" class="{% if 'student' in request.endpoint %}active{% endif %}">
+                        <span class="nav-icon">🎓</span> Students
+                    </a>
+                    <a href="{{ url_for('admin.class_sections') }}" class="{% if 'class_section' in request.endpoint %}active{% endif %}">
+                        <span class="nav-icon">📖</span> Class Sections
+                    </a>
+                    <a href="{{ url_for('admin.settings') }}" class="{% if 'settings' in request.endpoint %}active{% endif %}">
+                        <span class="nav-icon">⚙️</span> Settings
+                    </a>
                 {% elif current_user.role == 'faculty' %}
-                    <a href="{{ url_for('faculty.dashboard') }}" class="{% if request.endpoint == 'faculty.dashboard' %}active{% endif %}">📊 Dashboard</a>
-                    <a href="{{ url_for('faculty.my_sections') }}" class="{% if 'section' in request.endpoint %}active{% endif %}">📖 My Sections</a>
+                    <a href="{{ url_for('faculty.dashboard') }}" class="{% if request.endpoint == 'faculty.dashboard' %}active{% endif %}">
+                        <span class="nav-icon">📊</span> Dashboard
+                    </a>
+                    <a href="{{ url_for('faculty.my_sections') }}" class="{% if 'section' in request.endpoint %}active{% endif %}">
+                        <span class="nav-icon">📖</span> My Sections
+                    </a>
                 {% elif current_user.role == 'student' %}
-                    <a href="{{ url_for('student.dashboard') }}" class="{% if request.endpoint == 'student.dashboard' %}active{% endif %}">📊 Dashboard</a>
-                    <a href="{{ url_for('student.notifications') }}" class="{% if request.endpoint == 'student.notifications' %}active{% endif %}">🔔 Notifications</a>
-                    <a href="{{ url_for('student.history') }}" class="{% if 'history' in request.endpoint %}active{% endif %}">📅 History</a>
-                    <a href="{{ url_for('student.export_csv') }}">📥 Export Report</a>
+                    <a href="{{ url_for('student.dashboard') }}" class="{% if request.endpoint == 'student.dashboard' %}active{% endif %}">
+                        <span class="nav-icon">📊</span> Dashboard
+                    </a>
+                    <a href="{{ url_for('student.notifications') }}" class="{% if request.endpoint == 'student.notifications' %}active{% endif %}">
+                        <span class="nav-icon">🔔</span> Notifications
+                    </a>
+                    <a href="{{ url_for('student.history') }}" class="{% if 'history' in request.endpoint %}active{% endif %}">
+                        <span class="nav-icon">📅</span> History
+                    </a>
+                    <a href="{{ url_for('student.export_csv') }}">
+                        <span class="nav-icon">📥</span> Export Report
+                    </a>
                 {% endif %}
             </div>
+
+            <!-- Sidebar footer — user profile strip -->
             <div class="sidebar-footer">
-                <div style="margin-bottom: 8px;">👤 {{ current_user.full_name }}</div>
-                <a href="{{ url_for('auth.change_password') }}">🔑 Change Password</a><br>
-                <a href="{{ url_for('auth.logout') }}">🚪 Logout</a>
+                <div class="sidebar-user">
+                    <div class="sidebar-avatar">{{ current_user.full_name[:2] }}</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name">{{ current_user.full_name }}</div>
+                    </div>
+                </div>
+                <div class="sidebar-footer-links">
+                    <a href="{{ url_for('auth.change_password') }}"><span>🔑</span> Change Password</a>
+                    <a href="{{ url_for('auth.logout') }}"><span>🚪</span> Logout</a>
+                </div>
             </div>
         </nav>
 
