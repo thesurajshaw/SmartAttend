@@ -704,4 +704,75 @@ a:hover {
     .content-area {
         padding: 16px;
     }
+
+    .stat-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .cards-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ===========================================================
+   PHASE 2 — Dashboard Card Enhancements
+   Appended below; no existing rules above were changed.
+   =========================================================== */
+
+/* Stat grid — replaces inline flex on admin dashboard */
+.stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+    gap: 20px;
+}
+
+/* Cards grid — for subject cards (student) & section cards (faculty) */
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+/* Stat card: centred layout */
+.stat-card {
+    text-align: center;
+    padding: 26px 20px 22px;
+}
+
+/* Small decorative icon pill at top of each stat card */
+.stat-card .stat-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-sm);
+    background: var(--accent-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    margin: 0 auto 14px;
+}
+
+/* Uppercase label (e.g. "STUDENTS") */
+.stat-card .stat-label {
+    font-size: 0.76rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+
+/* Large bold number */
+.stat-card .stat-number {
+    font-size: 2.4rem;
+    font-weight: 700;
+    line-height: 1.05;
+    color: var(--accent);
+    margin: 0;
+}
+
+/* Welcome banner — coloured left-border strip */
+.welcome-banner {
+    border-left: 4px solid var(--accent);
+    margin-bottom: 24px;
 }

@@ -3,7 +3,7 @@
 {% block breadcrumb %}<span>Dashboard</span>{% endblock %}
 
 {% block content %}
-<div class="card" style="margin-bottom: 24px;">
+<div class="card welcome-banner">
     <h2 style="margin: 0;">Welcome, {{ current_user.full_name }}!</h2>
     <p style="color: var(--text-secondary); margin-top: 4px;">
         {{ current_user.student_profile.roll_no }} • 
@@ -15,9 +15,9 @@
 {% if not subjects %}
     <div class="card"><p>You are not enrolled in any subjects yet.</p></div>
 {% else %}
-<div style="display: flex; gap: 20px; flex-wrap: wrap;">
+<div class="cards-grid">
     {% for subj in subjects %}
-    <div class="card" style="flex: 1; min-width: 320px;">
+    <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
             <div>
                 <h3 style="margin: 0; color: var(--accent);">{{ subj.subject_code }}</h3>

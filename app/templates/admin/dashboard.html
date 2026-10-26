@@ -5,26 +5,31 @@
 {% endblock %}
 
 {% block content %}
-<div style="display: flex; gap: 20px; flex-wrap: wrap;">
-    <div class="card" style="flex: 1; min-width: 200px; text-align: center;">
-        <h3 style="color: var(--text-secondary); font-size: 0.9rem;">Students</h3>
-        <p style="font-size: 2rem; font-weight: bold; color: var(--accent);">{{ stats.students }}</p>
+<div class="stat-grid">
+    <div class="card stat-card">
+        <div class="stat-icon">👥</div>
+        <h3 class="stat-label">Students</h3>
+        <p class="stat-number">{{ stats.students }}</p>
     </div>
-    <div class="card" style="flex: 1; min-width: 200px; text-align: center;">
-        <h3 style="color: var(--text-secondary); font-size: 0.9rem;">Faculty</h3>
-        <p style="font-size: 2rem; font-weight: bold; color: var(--accent);">{{ stats.faculty }}</p>
+    <div class="card stat-card">
+        <div class="stat-icon">👨‍🏫</div>
+        <h3 class="stat-label">Faculty</h3>
+        <p class="stat-number">{{ stats.faculty }}</p>
     </div>
-    <div class="card" style="flex: 1; min-width: 200px; text-align: center;">
-        <h3 style="color: var(--text-secondary); font-size: 0.9rem;">Departments</h3>
-        <p style="font-size: 2rem; font-weight: bold; color: var(--accent);">{{ stats.departments }}</p>
+    <div class="card stat-card">
+        <div class="stat-icon">🏛️</div>
+        <h3 class="stat-label">Departments</h3>
+        <p class="stat-number">{{ stats.departments }}</p>
     </div>
-    <div class="card" style="flex: 1; min-width: 200px; text-align: center;">
-        <h3 style="color: var(--text-secondary); font-size: 0.9rem;">Subjects</h3>
-        <p style="font-size: 2rem; font-weight: bold; color: var(--accent);">{{ stats.subjects }}</p>
+    <div class="card stat-card">
+        <div class="stat-icon">📚</div>
+        <h3 class="stat-label">Subjects</h3>
+        <p class="stat-number">{{ stats.subjects }}</p>
     </div>
-    <div class="card" style="flex: 1; min-width: 200px; text-align: center;">
-        <h3 style="color: var(--text-secondary); font-size: 0.9rem;">Class Sections</h3>
-        <p style="font-size: 2rem; font-weight: bold; color: var(--accent);">{{ stats.sections }}</p>
+    <div class="card stat-card">
+        <div class="stat-icon">📖</div>
+        <h3 class="stat-label">Class Sections</h3>
+        <p class="stat-number">{{ stats.sections }}</p>
     </div>
 </div>
 {% endblock %}

@@ -5,14 +5,14 @@
 {% endblock %}
 
 {% block content %}
-<div class="card" style="margin-bottom: 24px;">
+<div class="card welcome-banner">
     <h2>Welcome, {{ current_user.full_name }}!</h2>
     <p style="color: var(--text-secondary);">You are assigned to {{ sections|length }} class section(s).</p>
 </div>
 
-<div style="display: flex; gap: 20px; flex-wrap: wrap;">
+<div class="cards-grid">
     {% for section in sections %}
-    <div class="card" style="flex: 1; min-width: 300px;">
+    <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
             <div>
                 <h3 style="margin: 0; color: var(--accent);">{{ section.subject.code }}</h3>
