@@ -776,3 +776,68 @@ a:hover {
     border-left: 4px solid var(--accent);
     margin-bottom: 24px;
 }
+
+/* ===========================================================
+   PHASE 3 — Table UI Refinements
+   New utility classes only. Existing .data-table rules above
+   are untouched; the two overrides below are additive.
+   =========================================================== */
+
+/* Slightly more visible hover tint (overrides Phase 1 bg-primary hover) */
+.data-table tbody tr:hover {
+    background: rgba(79, 70, 229, 0.04);
+}
+
+/* Vertically centre all table cells (purely cosmetic) */
+.data-table td {
+    vertical-align: middle;
+}
+
+/* Page-level heading (replaces style="margin-bottom: 24px;" on <h2>) */
+.page-title {
+    margin-bottom: 24px;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* Outline button variant — for pagination Previous/Next links
+   (replaces repeated style="background: var(--bg-secondary);
+    border: 1px solid var(--border-color);") */
+.btn-outline {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.btn-outline:hover {
+    background: var(--bg-primary);
+    border-color: var(--accent);
+    color: var(--accent);
+    opacity: 1;
+    text-decoration: none;
+}
+
+/* Pagination action row container
+   (replaces style="display: flex; gap: 8px; margin-top: 16px;
+    justify-content: center;") */
+.table-page-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+/* "Page X of Y" indicator chip
+   (replaces style="padding: 4px 12px; background: var(--bg-secondary);
+    border-radius: 4px;") */
+.page-indicator {
+    padding: 5px 14px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}

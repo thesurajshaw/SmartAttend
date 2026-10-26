@@ -5,11 +5,11 @@
 {% endblock %}
 
 {% block content %}
-<h2 style="margin-bottom: 24px;">🛡️ Audit Logs</h2>
+<h2 class="page-title">🛡️ Audit Logs</h2>
 
 <div class="card">
     <div style="overflow-x: auto;">
-        <table class="data-table" style="font-size: 0.9rem;">
+        <table class="data-table">
             <thead>
                 <tr>
                     <th>Timestamp (UTC)</th>
@@ -60,15 +60,15 @@
 
     <!-- Pagination -->
     {% if pagination.pages > 1 %}
-    <div style="display: flex; justify-content: center; gap: 8px; margin-top: 16px;">
+    <div class="table-page-actions">
         {% if pagination.has_prev %}
-        <a href="{{ url_for('admin.audit_logs', page=pagination.prev_num) }}" class="btn btn-sm" style="background: var(--bg-secondary);">&laquo; Previous</a>
+        <a href="{{ url_for('admin.audit_logs', page=pagination.prev_num) }}" class="btn btn-sm btn-outline">&laquo; Previous</a>
         {% endif %}
-        
-        <span style="padding: 4px 12px; background: var(--bg-secondary); border-radius: 4px;">Page {{ pagination.page }} of {{ pagination.pages }}</span>
-        
+
+        <span class="page-indicator">Page {{ pagination.page }} of {{ pagination.pages }}</span>
+
         {% if pagination.has_next %}
-        <a href="{{ url_for('admin.audit_logs', page=pagination.next_num) }}" class="btn btn-sm" style="background: var(--bg-secondary);">Next &raquo;</a>
+        <a href="{{ url_for('admin.audit_logs', page=pagination.next_num) }}" class="btn btn-sm btn-outline">Next &raquo;</a>
         {% endif %}
     </div>
     {% endif %}
