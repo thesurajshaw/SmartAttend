@@ -5,9 +5,9 @@
 {% endblock %}
 
 {% block content %}
-<div style="max-width: 600px;">
+<div class="form-container-md">
     <div class="card">
-        <h3>⚙️ Global Settings</h3>
+        <h2 class="page-title">⚙️ Global Settings</h2>
         <form method="POST" action="{{ url_for('admin.settings') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             

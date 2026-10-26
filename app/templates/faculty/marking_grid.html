@@ -48,7 +48,7 @@
                             <td><strong>{{ s.roll_no }}</strong></td>
                             <td>{{ s.user.full_name }}</td>
                             <td>
-                                <div style="display: flex; gap: 8px;">
+                                <div class="status-radio-group">
                                     <label style="cursor: {% if is_locked %}not-allowed{% else %}pointer{% endif %};">
                                         <input type="radio" name="status_{{ s.id }}" value="present" {% if status == 'present' %}checked{% endif %} {% if is_locked %}disabled{% endif %}> P
                                     </label>
@@ -66,7 +66,7 @@
                             <td>
                                 <input type="text" name="remarks_{{ s.id }}" value="{{ record.remarks or '' }}" 
                                        placeholder="Optional note" 
-                                       style="width: 100%; padding: 4px; border: 1px solid var(--border-color); border-radius: 4px;"
+                                       class="table-input"
                                        {% if is_locked %}disabled{% endif %}>
                             </td>
                             {% if is_locked %}
@@ -76,7 +76,7 @@
                                         {% if active_request %}
                                             <span class="status-chip status-warning">Pending</span>
                                         {% else %}
-                                            <button type="button" class="btn btn-sm" style="background: var(--bg-primary); border: 1px solid var(--border-color);" 
+                                            <button type="button" class="btn btn-sm btn-outline"
                                                     onclick="openCorrectionModal({{ record.id }}, '{{ s.user.full_name }}', '{{ status }}')">
                                                 Request Edit
                                             </button>
@@ -94,7 +94,7 @@
         
         {% if not is_locked %}
         <div style="margin-top: 24px; display: flex; gap: 16px; justify-content: flex-end;">
-            <button type="submit" name="action" value="save" class="btn btn-primary" style="background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color);">
+            <button type="submit" name="action" value="save" class="btn btn-outline">
                 Save Draft
             </button>
             <button type="submit" name="action" value="save_and_lock" class="btn btn-primary">
@@ -107,10 +107,10 @@
 
 {% if is_locked %}
 <!-- Correction Modal -->
-<div id="correctionModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
-    <div class="card" style="width: 100%; max-width: 400px; position: relative;">
-        <button onclick="closeCorrectionModal()" style="position: absolute; right: 16px; top: 16px; background: none; border: none; font-size: 1.2rem; cursor: pointer;">&times;</button>
-        <h3>Request Correction</h3>
+<div id="correctionModal" class="modal-backdrop" style="display: none;">
+    <div class="card modal-card">
+        <button type="button" class="modal-close" onclick="closeCorrectionModal()" aria-label="Close">&times;</button>
+        <h3 style="margin-top: 0;">Request Correction</h3>
         <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.9rem;" id="correctionStudentName"></p>
         
         <form id="correctionForm" method="POST" action="">
