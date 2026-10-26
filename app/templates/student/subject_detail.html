@@ -80,28 +80,20 @@
             {% endif %}
         </div>
 
-        <!-- Weekly Trend (text-based) -->
+        <!-- Weekly Trend -->
         {% if weekly_pcts|length > 1 %}
         <div class="card">
             <h3>📊 Weekly Trend</h3>
-            <table class="data-table" style="margin-top: 8px;">
-                <thead>
-                    <tr>
-                        {% for i in range(weekly_pcts|length) %}
-                        <th>W{{ i + 1 }}</th>
-                        {% endfor %}
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        {% for pct in weekly_pcts %}
-                        <td style="text-align: center; font-weight: 500; color: {% if pct >= 0.75 %}var(--green){% elif pct >= 0.70 %}var(--amber){% else %}var(--red){% endif %};">
-                            {{ "%.0f"|format(pct * 100) }}%
-                        </td>
-                        {% endfor %}
-                    </tr>
-                </tbody>
-            </table>
+            <div class="weekly-trend-strip">
+                {% for pct in weekly_pcts %}
+                <div class="weekly-trend-item">
+                    <span class="trend-week">W{{ loop.index }}</span>
+                    <span class="trend-pct" style="color: {% if pct >= 0.75 %}var(--green){% elif pct >= 0.70 %}var(--amber){% else %}var(--red){% endif %};">
+                        {{ "%.0f"|format(pct * 100) }}%
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
         </div>
         {% endif %}
 
